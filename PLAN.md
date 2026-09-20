@@ -19,7 +19,7 @@ accessory (most timer apps are the reverse).
 |---|---|---|
 | Stopwatch/countdown, accurate across background/lock | Straightforward | `SystemClock.elapsedRealtime()` is monotonic across deep sleep |
 | Local file playback (video/audio, artwork) | Straightforward | Media3/ExoPlayer + SAF |
-| Online stream playback (direct URL, HLS/DASH) | Straightforward | Needs a direct media/manifest URL, not a webpage — arbitrary web video extraction is **not possible** |
+| ~~Online stream playback~~ | **Dropped from v1, 2026-09-20** | Direct-URL/HLS/DASH streaming is technically fine (Media3 supports it), but the user decided it adds distribution/UI complexity not worth it for a local-gym-use v1. Deferred to a future update — see `DECISIONS.md`. |
 | Read metadata/art/position of another app's session | Android-dependent | Only via `NotificationListenerService` + `MediaSessionManager.getActiveSessions()`; no lighter permission exists |
 | Send play/pause/seek/skip to another app | Android-dependent | Framework forwards commands regardless of advertised capability; the *target app* may silently ignore them |
 | **Negative/inverted timer text over full-screen video** | **Challenging — unproven, needs a prototype spike** | See below |
@@ -51,10 +51,13 @@ instance during decode. Real, Media3-native, but `@UnstableApi` and unproven
 for this exact use — more machinery than justified until the simple path is
 proven not to work.
 
-**Decision: prototype the TextureView + Difference-blend approach first,
-before any other app code** (see Roadmap step 1). Fallback if it doesn't
-invert correctly: plain contrast-color/shadow text, same fallback used for
-API < 29 where `BlendMode.Difference` silently no-ops to `SrcOver`.
+**Resolved 2026-09-20:** the TextureView + Difference-blend approach was
+prototyped and confirmed working on a real device (Android 16 / API 36) —
+see `DECISIONS.md` for the on-device evidence and
+`app/src/main/kotlin/dev/fitnesstimer/render/RenderSpikeScreen.kt` for the
+implementation. This is the renderer for local/online video. Fallback for
+API < 29 (where `BlendMode.Difference` silently no-ops to `SrcOver`) remains
+plain contrast-color/shadow text, not yet re-verified on-device.
 
 ## C. Stack
 
@@ -67,6 +70,7 @@ API < 29 where `BlendMode.Difference` silently no-ops to `SrcOver`.
 | Coroutines/Flow | Async, state streams | Apache-2.0 | None |
 | `AlarmManager` (exact alarms) | Countdown-complete while backgrounded | Platform API | None |
 | Custom gesture layer (`pointerInput`/`awaitPointerEvent`) | Whole gesture system | Own code | None |
+| `androidx.palette` 1.0.0 | One-time dominant-color sampling for ambient letterbox (section H) | Apache-2.0 | None |
 
 **Explicitly not using:** cloud backend, paid media/AI services,
 `MANAGE_EXTERNAL_STORAGE`, Media3's optional FFmpeg/AV1 decoder extensions in
@@ -84,9 +88,9 @@ UI (Compose, full-screen)
       -> Media Engine
           - Local Media (Media3 ExoPlayer + SAF)
           - Android MediaSession (NotificationListenerService + MediaController, read/control only)
-          - Online Media (Media3 ExoPlayer, direct URL/HLS/DASH)
+          - (Online Media — dropped from v1, see DECISIONS.md)
       -> Visual Renderer
-          - Video (PlayerSurface, TextureView-backed)
+          - Video (ContentFrame, TextureView-backed, native aspect ratio, ambient-color letterbox)
           - Negative Timer Text (Compose Difference-blend overlay)
           - Artwork/CD (rotation animation over MediaMetadata art)
           - Progress (thin bottom bar, subtle)
@@ -155,7 +159,7 @@ data class MediaState(
   positionMs: Long, positionAnchorElapsedRealtime: Long, speed: Float,
   isPlaying: Boolean,
   capabilities: Set<Capability>,  // canSeek, canSkipNext, canSkipPrev — advisory only
-  source: MediaSourceKind         // Local, ThirdParty, Online
+  source: MediaSourceKind         // Local, ThirdParty (Online dropped from v1 — see DECISIONS.md)
 )
 ```
 
@@ -180,18 +184,31 @@ convention, not a documented Android formula.
    unknown.
 6. No-media state: timer text only, subtle idle motion via the same
    `graphicsLayer` pattern.
+7. **Aspect ratio / ambient letterbox — decided 2026-09-20.** When a local
+   video's aspect ratio doesn't match the device's, don't crop or stretch —
+   use Media3-Compose's `ContentFrame(contentScale = ContentScale.Fit)`
+   (documented wrapper around `PlayerSurface` that letterboxes natively)
+   instead of raw `PlayerSurface`. The letterbox space is filled with a
+   one-time dominant/muted color sampled from the video via
+   `MediaMetadataRetriever` + `androidx.palette` (Apache-2.0, stable 1.0.0),
+   not a plain black bar — a static color wash, not a live blurred replay of
+   the video. True YouTube-style *live blurred* ambient background is
+   explicitly **deferred**: it needs either a second simultaneous decode of
+   the same file or periodic frame capture, both real cost/complexity for a
+   cosmetic effect, and isn't proven cheap the way the TextureView blend
+   turned out to be. Revisit only if the static-color version feels flat in
+   practice.
 
 ## I. Roadmap
 
-1. **Rendering spike** — de-risk the biggest unknown before anything else.
-2. Timer engine + persistence (no UI polish) — correctness across
-   background/lock/reboot first.
-3. Gesture engine in isolation against a dummy timer.
-4. Local media playback (Media3 + SAF + validated rendering approach).
-5. Full-screen integration — timer + local media + gestures = first usable build.
+1. ~~**Rendering spike**~~ — done, confirmed working on-device 2026-09-20 (see `DECISIONS.md`).
+2. ~~Timer engine~~ — done (stopwatch only; countdown + mode picker still pending). No reboot/process-death persistence yet.
+3. ~~Gesture engine~~ — done as one unified state machine (`gesture/TimerGestures.kt`), skipped the "isolated against a dummy timer" staging and went straight to full integration (step 5) since the timer engine was quick to build alongside it.
+4. Local media playback — minimal version done (SAF `OpenDocument` picker wired to the top-right corner gesture, single file, no persisted-URI-across-restart handling yet — that part of this step remains open).
+5. ~~Full-screen integration~~ — done: timer + local media + gestures + ambient/aspect-ratio all on one screen (`ui/MainScreen.kt`), 2026-09-20. Manual on-device gesture testing is the user's, not automated — MIUI's ADB security policy blocks synthetic `input tap`/`swipe` on the test device (`SecurityException: Injecting input events requires INJECT_EVENTS permission`), so the gesture priority/timing design in section E hasn't been script-verified, only compiled and smoke-tested (app runs, doesn't crash, a hold-to-reset ring was observed rendering correctly during a real touch).
 6. Third-party MediaSession integration, including the restricted-settings
    onboarding flow.
-7. Online stream source.
+7. ~~Online stream source~~ — dropped from v1, 2026-09-20 (see `DECISIONS.md`).
 8. Source-picker UI (manual, persists until changed), polish, accessibility
    semantics layer.
 9. Packaging — F-Droid metadata, Play submission groundwork if desired
@@ -199,14 +216,17 @@ convention, not a documented Android formula.
 
 ## J. V1 scope
 
-**In:** stopwatch + countdown, all three media source types, negative-text
-video rendering (or fallback), CD/artwork audio rendering, full gesture
-system, manual persistent source picker, local notification-based countdown
-alert.
+**In:** stopwatch + countdown, local media playback (video/audio) and
+read/control of other apps' media sessions, negative-text video rendering
+with native-aspect-ratio + ambient-color letterboxing, CD/artwork audio
+rendering, full gesture system, manual persistent source picker, local
+notification-based countdown alert.
 
 **Out:** workout tracking, reps/sets, calories, social features, AI
 features, accounts, cloud sync, stats/dashboards, interval sequencing beyond
-stopwatch/countdown, tablet/foldable layouts, any non-Android platform.
+stopwatch/countdown, tablet/foldable layouts, any non-Android platform,
+**online/direct-URL streaming** (dropped 2026-09-20, deferred to a future
+update), live-blurred ambient background (deferred, see section H).
 
 ## K. Getting started
 

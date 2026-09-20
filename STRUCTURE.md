@@ -1,8 +1,8 @@
 # Project Structure
 
-Planned layout — nothing exists yet (pre-code, see `PLAN.md` → Roadmap step 1
-for the actual first task). Update this file as the real structure settles;
-treat it as a living map, not a spec to satisfy exactly.
+Current layout, `dev.fitnesstimer` package. Update this file as the
+structure keeps changing; treat it as a living map, not a spec to satisfy
+exactly.
 
 ```
 fitness-timer/
@@ -10,28 +10,35 @@ fitness-timer/
 ├── PLAN.md
 ├── STRUCTURE.md
 ├── DECISIONS.md
-├── LICENSE
-├── .github/
-│   └── ISSUE_TEMPLATE/
 └── app/
     ├── build.gradle.kts
-    └── src/main/kotlin/.../
-        ├── gesture/          # custom pointerInput state machine (section E)
-        ├── timer/            # elapsedRealtime-based timer engine (section F)
-        ├── media/
-        │   ├── local/        # SAF + ExoPlayer local playback
-        │   ├── session/      # NotificationListenerService + MediaController
-        │   ├── online/       # direct-URL/HLS/DASH playback
-        │   └── MediaState.kt # shared abstraction (section G)
-        ├── render/           # video surface, negative-text overlay, CD/artwork, progress (section H)
-        ├── state/            # single ApplicationState holder (section D)
-        └── ui/                # top-level Compose screen(s)
+    └── src/main/
+        ├── AndroidManifest.xml
+        ├── res/values/strings.xml
+        └── kotlin/dev/fitnesstimer/
+            ├── MainActivity.kt
+            ├── gesture/
+            │   └── TimerGestures.kt      # unified pointerInput state machine (section E)
+            ├── timer/
+            │   └── TimerEngine.kt        # elapsedRealtime-based, stopwatch only so far (section F)
+            ├── render/
+            │   ├── NegativeTimerText.kt  # Difference-blend overlay + hold-to-reset ring (section H)
+            │   └── AmbientColor.kt       # one-time Palette dominant-color sample for the letterbox
+            └── ui/
+                └── MainScreen.kt         # wires timer + gestures + Media3 + render together
 ```
 
 Notes:
-- No `data/`, `network/`, or `repository/` layers beyond what's above — v1
-  has no backend and no persistence beyond simple local state/prefs.
-- `render/` stays isolated so the rendering spike's outcome (TextureView
-  blend vs. fallback vs. GL shader) can be swapped without touching
-  `gesture/`, `timer/`, or `media/`.
-- Package name/group ID not yet decided.
+- No `media/`, `data/`, `network/`, or `repository/` layers yet — local
+  playback is currently inlined in `MainScreen.kt` (a single `ExoPlayer` +
+  `ActivityResultContracts.OpenDocument()` picker, no persisted-URI
+  handling across restarts, no `MediaState` abstraction). Splitting this out
+  into `media/local/` + `media/session/` + a shared `MediaState` is still
+  open — becomes necessary once MediaSession integration (roadmap step 6)
+  starts, since that's when two source kinds need the same shape.
+- No `state/` (single `ApplicationState` holder) yet either — `MainScreen`
+  currently owns `TimerEngine`, the `ExoPlayer`, and UI state directly via
+  `remember`. Fine at this size; revisit if it gets unwieldy.
+- (`media/online/` — dropped from v1, 2026-09-20 — see `DECISIONS.md`.)
+- Package name: `dev.fitnesstimer` (decided implicitly by starting the
+  project; revisit before any real release if it matters).
