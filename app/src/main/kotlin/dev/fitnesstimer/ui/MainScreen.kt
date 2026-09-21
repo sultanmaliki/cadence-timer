@@ -40,6 +40,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.ContentFrame
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
+import dev.fitnesstimer.R
 import dev.fitnesstimer.gesture.ScrubAccumulator
 import dev.fitnesstimer.gesture.TimerGestureActions
 import dev.fitnesstimer.gesture.timerGestures
@@ -132,7 +133,9 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
 
     // Source mode (PLAN.md N): COMPANION shows what another app is playing;
     // otherwise the local player is shown. Survives Activity recreation.
-    var companionMode by rememberSaveable { mutableStateOf(debugUris.isEmpty()) }
+    // The standalone edition has no companion mode at all (see app/build.gradle.kts).
+    val companionAvailable = remember { context.resources.getBoolean(R.bool.companion_enabled) }
+    var companionMode by rememberSaveable { mutableStateOf(companionAvailable && debugUris.isEmpty()) }
     var accessCardDismissed by rememberSaveable { mutableStateOf(false) }
     val nowPlayingState by NowPlayingRepository.state.collectAsState()
     var companionColors by remember { mutableStateOf(DEFAULT_ART_COLORS) }
@@ -472,6 +475,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
 
     if (showSourceMenu) {
         MediaSourceMenu(
+            showNowPlaying = companionAvailable,
             onDismiss = { showSourceMenu = false },
             onNowPlaying = {
                 showSourceMenu = false

@@ -30,7 +30,8 @@ emulator on Android 10 (API 29) or newer. The Gradle wrapper does the rest. See
 ## Before you open a pull request
 
 ```bash
-./gradlew testDebugUnitTest lintDebug assembleDebug assembleRelease
+./gradlew testFullDebugUnitTest testStandaloneDebugUnitTest lintFullDebug lintStandaloneDebug \
+  assembleFullRelease assembleStandaloneRelease
 ```
 
 All of it must pass, with lint clean. Then, depending on what you touched:
@@ -42,18 +43,25 @@ derivation, artwork trimming, the two-finger tracker, playlist storage. New logi
 bug fix gets a regression test that **fails without the fix** (revert the fix once and confirm).
 
 ### On-device tests (`app/src/androidTest`)
-30 tests drive the real gesture engine and the whole timer flow through the real `MainScreen`, using
+About 34 tests per edition drive the real gesture engine and the whole timer flow through the real `MainScreen`, using
 Compose's test framework. It dispatches touches straight into the app, so it works even on phones that
 block `adb shell input` (e.g. MIUI). Run them by hand: Gradle's `connectedDebugAndroidTest` uninstalls
 the app afterwards and wipes its data.
 
+Run them for **both editions** (`full` and `standalone`; shown for `full`):
+
 ```bash
-./gradlew assembleDebug assembleDebugAndroidTest
-adb install -r -t app/build/outputs/apk/debug/app-debug.apk
-adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+./gradlew assembleFullDebug assembleFullDebugAndroidTest
+adb install -r -t app/build/outputs/apk/full/debug/app-full-debug.apk
+adb install -r -t app/build/outputs/apk/androidTest/full/debug/app-full-debug-androidTest.apk
 adb shell am instrument -w dev.fitnesstimer.test/androidx.test.runner.AndroidJUnitRunner
 adb uninstall dev.fitnesstimer.test
 ```
+
+Each edition also has its own tests (`src/androidTestFull`, `src/androidTestStandalone`) that check the
+installed package: the standalone edition must never declare a notification listener, SMS/accessibility
+binding, Record audio or Internet, because Google Play Protect blocks sideloaded installs of apps that
+do (see `DECISIONS.md`). Adding any of those to the standalone edition breaks its purpose.
 
 Two harness gotchas that cost time:
 - A `performTouchInput { ... }` block delivers its events together when it ends, so a real pause
@@ -88,12 +96,21 @@ verify**. Contributions are licensed under the project's [Apache-2.0](LICENSE) l
 ## Releases (maintainer checklist)
 
 1. Bump `versionCode` and `versionName` in `app/build.gradle.kts`; update `CHANGELOG.md`.
-2. Clean build with unit tests, lint and `assembleRelease`; run the on-device tests on that build.
-3. Install the release APK over the previous one on a real phone and smoke-test it (launch, audio
-   capture starts, no crash, developer test hooks are ignored).
-4. Push, then publish a GitHub release from `main` with the APK and detailed notes, including a
-   "Not verified" section. Sideload builds are signed with the debug key so they upgrade in place;
-   a private release keystore is needed before any Play or F-Droid distribution.
+2. Clean build with unit tests, lint and `assembleFullRelease assembleStandaloneRelease`; run the
+   on-device tests for both editions.
+3. Check each release APK: `aapt2 dump permissions` (the standalone edition must have none of the
+   blocked declarations) and `apksigner verify --print-certs` (must show SetBeat's release key; the
+   fingerprint is in the README).
+4. Install a release APK on a real phone and smoke-test it (launch, no crash, developer test hooks are
+   ignored). Note that changing the signing key needs an uninstall first.
+5. Push, then publish a GitHub release from `main` with both APKs (`setbeat-full-vX.Y.Z.apk`,
+   `setbeat-standalone-vX.Y.Z.apk`), their SHA-256 checksums and detailed notes, including a "Not
+   verified" section.
+
+**Signing key.** Releases are signed with a private key kept outside the repo
+(`keystore.properties`, gitignored, points at the `.jks`). **Back both files up somewhere safe:** if
+the key is lost, no update can ever install over existing copies. Never commit them. The same key can
+serve as the upload key if the app is ever published on Google Play.
 
 ## Reporting a bug
 

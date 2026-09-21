@@ -15,10 +15,12 @@ import dev.fitnesstimer.timer.CountdownAlarm
 import dev.fitnesstimer.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
+    private val companionEnabled by lazy { resources.getBoolean(R.bool.companion_enabled) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppTimer.init(this)
-        NowPlayingRepository.init(this)
+        if (companionEnabled) NowPlayingRepository.init(this)
         enableEdgeToEdge()
         // Debug-only hook: `adb shell am start -n dev.fitnesstimer/.MainActivity
         // --es debug_media_uri file:///...` loads a file without the SAF picker.
@@ -76,17 +78,19 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         AppTimer.uiVisible = false
-        AudioLevelSource.setVisible(false)
+        if (companionEnabled) AudioLevelSource.setVisible(false)
         super.onPause()
     }
 
     override fun onResume() {
         super.onResume()
         AppTimer.uiVisible = true
-        AudioLevelSource.refreshPermission(this)
-        AudioLevelSource.setVisible(true)
+        if (companionEnabled) {
+            AudioLevelSource.refreshPermission(this)
+            AudioLevelSource.setVisible(true)
+        }
         CountdownAlarm.cancelFinishedNotification(this)
         // The user may have just toggled notification access in Settings.
-        NowPlayingRepository.refresh()
+        if (companionEnabled) NowPlayingRepository.refresh()
     }
 }

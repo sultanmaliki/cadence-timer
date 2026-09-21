@@ -8,10 +8,13 @@ setbeat/
 ├── README.md  PLAN.md  STRUCTURE.md  DECISIONS.md  CHANGELOG.md  CONTRIBUTING.md  LICENSE
 ├── docs/                            # logo, banner (also the GitHub social preview) and README screenshots
 ├── .github/ISSUE_TEMPLATE/          # bug report template
+├── keystore.properties (gitignored, local only)  # points at the private release key
 ├── test-logs/                       # saved unit/lint/device test run logs
 └── app/
     ├── build.gradle.kts
     └── src/
+        ├── full/                        # FULL edition extras: NotificationListenerService + Record audio manifest, companion_enabled=true
+        ├── standalone/                  # STANDALONE edition: companion_enabled=false, declares none of the blocked permissions
         ├── main/
         │   ├── AndroidManifest.xml
         │   └── kotlin/dev/fitnesstimer/
@@ -42,6 +45,7 @@ setbeat/
         │       └── ui/
         │           ├── MainScreen.kt        # mirrors player state from a MediaController; wires everything
         │           ├── MediaSourceMenu.kt  PlaylistScreen.kt  TimerModeMenu.kt
+        ├── androidTestFull/  androidTestStandalone/   # per-edition on-device checks of the installed package
         ├── test/kotlin/dev/fitnesstimer/    # JVM unit tests (timer, alarm, gestures, audio bands, selection, colours, playlists, art trim)
         └── androidTest/kotlin/dev/fitnesstimer/   # on-device Compose tests: gesture engine (22) + full timer flow via MainScreen (8)
 ```

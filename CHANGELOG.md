@@ -4,6 +4,19 @@ All notable changes to SetBeat, newest first. Each release has fuller notes (and
 [Releases](https://github.com/sultanmaliki/setbeat/releases) page. Versions before 0.2.3 were published
 under the earlier app names *Fitness Timer* (0.1 to 0.2) and *Cadence* (0.2.1 to 0.2.2).
 
+## 0.3.0 - two editions, private signing key
+- **Fixes "App blocked to protect your device" (Google Play Protect) on other phones.** Play Protect
+  blocks sideloaded apps that declare notification-listener access in some markets. SetBeat now ships
+  two editions: **Standalone** (no notification listener, no audio capture: installs anywhere; local
+  media, playlists and the timer) and **Full** (adds companion mode and the beat wave; needs Google
+  Play or `adb` on phones that apply the block). On-device tests check that the standalone package
+  never declares the blocked permissions.
+- **Releases are now signed with SetBeat's own private key** (fingerprint in the README) instead of a
+  shared debug key, and each release lists SHA-256 checksums. **Breaking:** Android will not update
+  across a signing-key change, so uninstall 0.2.x first (its playlists and timer are removed).
+- README install guide rewritten (which edition, what the Play Protect message means, options,
+  verification). No other behaviour changes.
+
 ## 0.2.3 (SetBeat)
 - **Renamed to SetBeat** (a gym "set" plus the "beat" of the music). The earlier candidates were
   rejected: *Cadence* collides with a registered trademark, and *RepBeat* is an existing workout timer

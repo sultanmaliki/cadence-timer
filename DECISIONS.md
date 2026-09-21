@@ -7,6 +7,35 @@ them here.
 
 ## Resolved
 
+- **Google Play Protect blocks sideloaded installs — RESOLVED 2026-09-21 with two editions.** Owner
+  report: on phones other than the test phone, installing the APK shows "App blocked to protect your
+  device / This app can request access to sensitive data" with only OK. Cause (Google's developer
+  guidance, `developers.google.com/android/play-protect/warning-dev-guidance`, read through a
+  summarizing fetch): in select markets (Google has piloted India, Singapore, Thailand, Brazil), Play
+  Protect automatically blocks apps installed from "Internet-sideloading sources" (browser, messaging
+  app, file manager) if they use RECEIVE_SMS, READ_SMS, NOTIFICATION_LISTENER or ACCESSIBILITY; the
+  dialog has no override. SetBeat declares a NotificationListenerService (the only way to read other
+  apps' media sessions), so it was blocked. The test phone never showed it because `adb install` is not
+  an internet-sideloading source. Decision: ship **two editions** (same package id): **full** (companion
+  mode: notification listener + Record audio; for Google Play or `adb`) and **standalone** (no
+  notification listener, no audio capture, no SMS/accessibility; installs anywhere; local media and
+  timer only), with on-device tests that fail if the blocked declarations reach the standalone edition.
+  Deliberately NOT done: hiding or delaying the service declaration to slip past the scan (that would
+  evade a fraud-protection control and risks the app being flagged as harmful). Not verified: the
+  standalone APK on a phone that actually applies the block (only the test phone was available; the
+  manifest was inspected and tested instead). Other routes for the full edition: publish on Google Play
+  (Play installs are not blocked; needs a developer account, closed testing, and a policy review of
+  notification-listener, Record audio and exact-alarm use) or file a Play Protect appeal (outcome
+  unknown; may not apply to a permission-based block).
+- **Signing key — DECIDED 2026-09-21.** Releases are signed with a private RSA-4096 key
+  (CN=SetBeat, valid to 2054) kept outside the repo; `keystore.properties` and `*.jks` are gitignored.
+  Its SHA-256 fingerprint is published in the README. Consequence: the earlier debug-signed releases
+  (0.1 to 0.2.3) cannot be updated in place; the first installs of this key need an uninstall. The key
+  must be backed up by the owner: losing it means no future update can install over existing copies.
+- **R8/minify not enabled — 2026-09-21.** Considered for a smaller APK (~29 MB now). Not enabled because
+  the release-only code paths (Media3 service, receivers, alarm, listener) cannot be fully exercised
+  on-device in a non-debuggable build, so a keep-rule mistake would ship untested; revisit with a
+  minified debuggable "QA" build type that the on-device tests can run against.
 - **Local playback — DECIDED 2026-09-21: keep it as it is** (owner). Video and audio files,
   playlists and the ExoPlayer service stay alongside companion mode; companion mode is the default and
   a menu entry switches sources. It is built, tested, idle unless used, the only source for offline

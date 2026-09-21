@@ -644,6 +644,17 @@ across repeated forced track changes. The bar-trim was also seen working on a re
 - Verification for the rename release: 123 unit tests, lint, clean release build, the 30 on-device
   tests, and a launch/capture smoke test of the release APK on the test phone.
 
+### N.5j Play Protect block, two editions, release signing (2026-09-21)
+
+Owner report: on other phones the APK shows Google Play Protect's "App blocked to protect your device".
+Cause and decision are recorded in `DECISIONS.md` (sideloaded apps declaring notification-listener,
+SMS or accessibility access are blocked in select markets; no user override). Result: `full` and
+`standalone` product flavors (same package id) selected by `companion_enabled`, per-edition manifests,
+per-edition on-device tests (34 standalone, 33 full, all passing), a private release key
+(`keystore.properties`, gitignored) and published fingerprint. Not verified: the standalone APK on a phone
+that actually applies the block; installing the release-signed APK (needs an uninstall of the
+debug-signed one, so it was not done on the only test phone).
+
 ### N.6 Phases
 
 - **P0 — Probe (device) — DONE 2026-09-21, see N.4:** with music playing, dump `dumpsys media_session`

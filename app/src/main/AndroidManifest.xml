@@ -19,10 +19,6 @@
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- Beat-reactive wave (PLAN.md N.5e): android.media.audiofx.Visualizer on the output mix needs
-         both. Nothing is recorded, stored or sent; asked for only after an in-app explanation. -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <application
         android:allowBackup="false"
@@ -49,19 +45,6 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService" />
-            </intent-filter>
-        </service>
-
-        <!-- Exists only so the user can grant notification access, which
-             authorizes reading other apps' media sessions (PLAN.md N).
-             The service ignores all notifications. -->
-        <service
-            android:name=".nowplaying.NowPlayingListenerService"
-            android:exported="true"
-            android:label="@string/app_name"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
 
