@@ -22,7 +22,6 @@ object SessionSelector {
     fun select(
         candidates: List<SessionCandidate>,
         ownPackage: String,
-        preferredPackage: String? = null,
     ): SessionCandidate? {
         fun rank(state: Int): Int = when {
             isPlayingState(state) -> 3
@@ -32,9 +31,6 @@ object SessionSelector {
         }
         return candidates
             .filter { it.packageName != ownPackage && rank(it.playbackState) > 0 }
-            .maxWithOrNull(
-                compareBy<SessionCandidate> { rank(it.playbackState) }
-                    .thenBy { if (it.packageName == preferredPackage) 1 else 0 }
-            )
+            .maxWithOrNull(compareBy { rank(it.playbackState) })
     }
 }

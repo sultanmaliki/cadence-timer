@@ -1,9 +1,9 @@
 # Technical Plan
 
-> **Naming, 2026-09-21:** the app is now called **Cadence** (repo `cadence-timer`); it was
-> "Fitness Timer" while this plan was written, so older sections and dates may still say so.
-> The Android package id stays `dev.fitnesstimer` on purpose: changing the application id would
-> stop the app upgrading over existing installs.
+> **Naming:** the app is called **SetBeat** (repo `setbeat`). While this plan was written it was
+> "Fitness Timer", and for a day "Cadence", so older sections and dates may still say so. The Android
+> package id stays `dev.fitnesstimer` on purpose: changing the application id would stop the app
+> upgrading over existing installs.
 
 Grounded in a research pass against primary Android/AOSP/Media3/Play sources
 (Sept 2026), each finding adversarially re-checked. Claims below are the
@@ -214,12 +214,12 @@ convention, not a documented Android formula.
 2. ~~Timer engine~~ — done: stopwatch + countdown + mode picker; persisted across process death (v0.1.1). Countdown completion is still foreground-only — the background alarm is pulled into v0.2 (section N.6).
 3. ~~Gesture engine~~ — done as one unified state machine (`gesture/TimerGestures.kt`), skipped the "isolated against a dummy timer" staging and went straight to full integration (step 5) since the timer engine was quick to build alongside it.
 4. ~~Local media playback~~ — done and hardened by v0.1.1: `MediaSessionService` + `MediaController`, player-owned queue (playlists, next/prev/auto-advance), notification controls incl. a timer button, audio focus/noisy/wake lock, unplayable-file skipping. SAF grants are persisted (safely) and released on playlist delete.
-5. ~~Full-screen integration~~ — done: timer + local media + gestures + ambient/aspect-ratio all on one screen (`ui/MainScreen.kt`), 2026-09-20. Manual on-device gesture testing is the user's, not automated — MIUI's ADB security policy blocks synthetic `input tap`/`swipe` on the test device (`SecurityException: Injecting input events requires INJECT_EVENTS permission`), so the gesture priority/timing design in section E hasn't been script-verified, only compiled and smoke-tested (app runs, doesn't crash, a hold-to-reset ring was observed rendering correctly during a real touch).
+5. ~~Full-screen integration~~ — done: timer + local media + gestures + ambient/aspect-ratio all on one screen (`ui/MainScreen.kt`), 2026-09-20. The gesture priority/timing design in section E was first only hand-tested (MIUI blocks `adb shell input`); it is now covered by on-device Compose tests that dispatch touches straight into the app (30 tests, section N.5g/N.5h).
 6. ~~Third-party MediaSession integration~~ — promoted to the v0.2 headline
    feature (section N), including the restricted-settings onboarding flow.
 7. ~~Online stream source~~ — dropped from v1, 2026-09-20 (see `DECISIONS.md`).
-8. Source-picker UI (manual, persists until changed), polish, accessibility
-   semantics layer.
+8. ~~Source-picker~~ — done as a top-right menu (Now playing / choose file / playlists). Still open:
+   polish and the accessibility semantics layer (`DECISIONS.md`).
 9. Packaging — F-Droid metadata, Play submission groundwork if desired
    (including the Play Console policy check from section B).
 
@@ -231,8 +231,8 @@ with native-aspect-ratio + ambient-color letterboxing, CD/artwork audio
 rendering, full gesture system, manual persistent source picker, local
 notification-based countdown alert.
 
-**v0.2 addition:** companion mode (section N). Whether local playback stays
-is an open decision (`DECISIONS.md`); until decided, nothing is removed.
+**v0.2 addition:** companion mode (section N). Local playback **stays as it is** (decided
+2026-09-21, `DECISIONS.md`).
 
 **Out:** workout tracking, reps/sets, calories, social features, AI
 features, accounts, cloud sync, stats/dashboards, interval sequencing beyond
@@ -543,7 +543,7 @@ flattens when paused. Frames: ~58/s while playing (median 13 ms), 0 when paused.
 
 ### N.5f Branding and artwork polish (2026-09-21)
 
-- **Name/icon:** app label "Cadence"; new adaptive icon generated in code (Pillow): a timer
+- **Name/icon:** app label "Cadence" (later renamed SetBeat, see `DECISIONS.md`); new adaptive icon generated in code (Pillow): a timer
   progress ring (dim track, gradient arc up to a ring thumb) enclosing three translucent wave hills
   in the same hues as the in-app wave, on a dark indigo gradient. Ships as adaptive layers
   (background/foreground) plus a **monochrome layer** for Android 13+ themed icons, in every
@@ -558,6 +558,92 @@ flattens when paused. Frames: ~58/s while playing (median 13 ms), 0 when paused.
   enough. Not verified on a real barred cover on-device (the track playing during testing had
   full-bleed art, where the trim correctly did nothing).
 
+### N.5g Bugs found by the owner and by soak testing, fixed (2026-09-21)
+
+Reported by the owner after using v0.2, each reproduced or explained from the code and covered by a
+regression test where the logic is pure:
+
+1. **Wave started "forward from the beginning" after ~2:30.** The scrolling history held only 60
+   columns (~240 dp, about 2 s of audio); once the thumb was further along the bar than that, the left
+   part of the bar had no wave. History is now 160 columns (wider than any portrait phone). Verified:
+   over 31 consecutive shots the thumb moved x=432 to x=1152 while the wave's left edge stayed at the
+   start of the bar (x~100, the end taper).
+2. **Wave shrank or vanished mid-song.** Two causes. (a) The level was almost entirely "rise above
+   the recent average", so a quiet steady passage after a loud one collapsed to ~0, and the mid/high
+   bands were further scaled to 70%/50%: levels now have a 0.16 floor, the gain recovers ~2x faster
+   (peak decay 0.985) and band scales are 1.0/0.8/0.62 (regression tests: a quiet passage after a loud
+   one stays >= the floor). (b) **A stale-capture bug:** the wave's update loop decided once, at
+   start, whether live audio existed; the capture restarts at each track change and comes up a moment
+   later, leaving the loop stuck in the faint "no audio" ripple until an unrelated playback update.
+   The status is now read every tick. Reproduced on-device (identical faint shape across shots while
+   levels were healthy) and re-verified after forced track changes.
+3. **A tiny finger movement changed the song.** The two-finger swipe read "the first pointer currently
+   down"; if one finger lifted slightly before the other, the survivor became "first", its x jumped a
+   whole finger-gap, and a tap read as a swipe. Now `TwoFingerTracker` follows each pointer by id,
+   freezes a finger's displacement when it lifts, averages them, and requires the swipe to be mostly
+   horizontal. Unit-tested including the lift-order scenarios. Not verifiable by script on the test phone
+   (touch injection is blocked): needs the owner's hands.
+
+**On-device gesture tests (new).** Shell touch injection is blocked on this phone (MIUI), but
+Compose's own test framework (`createComposeRule` + `performTouchInput`) dispatches pointer events
+straight into the app and works. `app/src/androidTest/.../TimerGesturesInstrumentedTest.kt` runs the
+REAL gesture state machine on the phone: 18 tests covering two-finger tap/swipe (both lift orders,
+jitter, three fingers), single/double taps in every zone, corner menus, drag-scrub, a quick flick,
+and hold-to-reset in real time (early release and a second finger cancelling it). Proof they detect
+the bug: with the pre-fix gesture code, 4 of the first 10 fail (lift-order, jitter, plain two-finger
+tap, quick flick); with the fix all pass. Running them: build with
+`assembleDebug assembleDebugAndroidTest`, `adb install -r -t` both APKs and
+`adb shell am instrument -w dev.fitnesstimer.test/androidx.test.runner.AndroidJUnitRunner`.
+Do NOT use `connectedDebugAndroidTest` on a phone with real data: Gradle uninstalls the app
+afterwards. Test-harness gotchas learned: a `performTouchInput` block delivers its events together
+when it ends (put real pauses BETWEEN blocks), and the engine measures holds in real time but wakes
+on virtual-clock timeouts (also call `mainClock.advanceTimeBy`).
+
+A second gesture bug found this way: a very fast single-finger flick (finished inside the 100 ms
+grace before a drag begins) fell through as a "tap" and toggled the timer. A finger that travelled
+past touch slop is now never a tap (`movedPastSlop`).
+
+Found by soak testing: at every track boundary Mi Music reports "no session" for ~150 ms, which
+flashed "Nothing playing" and restarted the audio capture. `NullGrace` now holds the last value for
+1.5 s (unit-tested) and the capture is stopped only after 2.5 s of not-playing. Result: 0 flashes
+across repeated forced track changes. The bar-trim was also seen working on a real barred cover
+(256x144 -> 146x144).
+
+### N.5h Timer and stopwatch pass, stuck-ring fix, cleanup (2026-09-21)
+
+- **Stuck hold-to-reset ring (owner report).** The gesture engine reported hold progress while the
+  finger was held but never reported it back to 0 on release, so an early release left a partial ring
+  and a completed reset left a full circle on screen. Every gesture now ends by clearing the ring, and
+  a completed reset keeps the full ring visible until the finger lifts. Covered by on-device tests
+  (early release, completed reset, ordinary tap while paused, drag away from a hold).
+- **Countdown input.** `parseCountdown` (pure, unit-tested) replaces a private parser that gave no
+  feedback on bad input and could overflow to a garbage target with a huge number of minutes. Accepts
+  `mm:ss` and `h:mm:ss`, digits only, seconds/minutes < 60, capped at 99:59:59; the dialog now shows
+  an error message.
+- **End-to-end timer tests on a device** (`TimerFlowInstrumentedTest`, 8 tests through the real
+  `MainScreen`): stopwatch start/pause/resume totals, hold-to-reset only while paused, holding while
+  running does not reset, a countdown running to zero and stopping, a finished countdown restarting only
+  after a reset, 21 rapid taps ending in the right state, switching mode while running, and state saved
+  on every transition. The first version was flaky because it slept in real time and then jumped the
+  virtual clock; time now passes on both together. 3 of 3 full runs of all 30 on-device tests pass.
+- **Cleanup:** removed code nothing used (`sampleColorFromBitmap`, `TwoFingerTracker.pointerCount`,
+  the never-wired session override in `NowPlayingRepository`/`SessionSelector`, three `NowPlaying`
+  capability flags only their own tests read, unused imports), the 850 MB stale heap dump, and the
+  intermediate test logs (kept: the probe, alarm, stress and gesture logs).
+- **Name.** "Cadence" collided with Cadence Design Systems' registered CADENCE mark; the owner then
+  proposed "RepBeat", which turned out to be an existing workout interval-timer app, so the app became
+  **SetBeat** (details and the checks made are in `DECISIONS.md`).
+
+### N.5i Rename to SetBeat, banner, changelog (2026-09-21)
+
+- App label and gradle project renamed to **SetBeat**, repo to `setbeat`; the package id stays
+  `dev.fitnesstimer` so installs upgrade. Naming history and the checks behind it: `DECISIONS.md`.
+- `docs/banner.png` (1280x640, generated in code) is the README header and the intended GitHub social
+  preview (uploaded by hand: GitHub has no API for it).
+- `CHANGELOG.md` summarises every release; release notes on GitHub stay the detailed record.
+- Verification for the rename release: 123 unit tests, lint, clean release build, the 30 on-device
+  tests, and a launch/capture smoke test of the release APK on the test phone.
+
 ### N.6 Phases
 
 - **P0 — Probe (device) — DONE 2026-09-21, see N.4:** with music playing, dump `dumpsys media_session`
@@ -570,9 +656,10 @@ flattens when paused. Frames: ~58/s while playing (median 13 ms), 0 when paused.
   gestures → transport controls; `NotificationAccessScreen`.
 - **P3 — Background countdown alarm — DONE 2026-09-21 (notification/sound still to be verified by hand), see N.5d:** exact alarm + high-importance
   notification (section F), since the screen will usually be off.
-- **P4 — Polish:** session override, empty/idle state ("nothing playing"),
-  a11y semantics, then decide the fate of local playback.
+- **P4 — Polish — MOSTLY DONE:** empty/idle state ("nothing playing") done; the fate of local
+  playback is decided (keep). Still open: accessibility semantics. A per-app session override was
+  dropped as unused code (the selector and repository no longer carry it; re-add only if wanted).
 
-Testing limits are unchanged: MIUI blocks injected input, so gestures and
-settings screens are verified by hand; logic is verified by unit tests and
-device logs.
+Testing: `adb shell input` and permission grants are blocked on the test phone (MIUI), but gestures
+and the whole timer flow are tested on-device with Compose's own test framework (N.5g/N.5h);
+permission dialogs, the Settings toggle and the countdown notification still need hands.

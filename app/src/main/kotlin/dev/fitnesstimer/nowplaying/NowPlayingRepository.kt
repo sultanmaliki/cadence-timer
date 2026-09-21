@@ -7,12 +7,16 @@ import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
 import android.media.session.PlaybackState
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 private const val TAG = "FitnessTimer"
+private const val GRACE_MS = 1500L
 
 /**
  * Bridges other apps' media sessions into a [StateFlow]. Main-thread only
@@ -32,7 +36,6 @@ object NowPlayingRepository {
     private var manager: MediaSessionManager? = null
     private var component: ComponentName? = null
     private var listening = false
-    private var preferredPackage: String? = null
 
     private var controllers: List<MediaController> = emptyList()
     private var current: MediaController? = null
@@ -57,6 +60,7 @@ object NowPlayingRepository {
         Log.d(TAG, "[nowplaying] refresh: granted=$granted")
         if (!granted) {
             stopListening()
+            grace.reset()
             publish(NowPlayingState(accessGranted = false))
             return
         }
@@ -72,14 +76,9 @@ object NowPlayingRepository {
         } catch (e: SecurityException) {
             Log.w(TAG, "[nowplaying] access revoked or not yet effective", e)
             stopListening()
+            grace.reset()
             publish(NowPlayingState(accessGranted = false))
         }
-    }
-
-    /** User override: prefer this app's session when several are equally active. */
-    fun setPreferredPackage(pkg: String?) {
-        preferredPackage = pkg
-        recompute()
     }
 
     // ---- controls: forwarded to the source app; it may ignore them (actions are advisory) ----
@@ -134,14 +133,24 @@ object NowPlayingRepository {
         }
     }
 
+    // Between tracks an app can report "no session" for ~150 ms; hold the last value briefly.
+    private val grace = NullGrace<NowPlaying>(GRACE_MS)
+    private val handler = Handler(Looper.getMainLooper())
+    private val recheck = Runnable { recompute() }
+
     private fun recompute() {
         val ctx = appContext ?: return
         val candidates = controllers.mapIndexed { i, c ->
             SessionCandidate(i.toString(), c.packageName, c.playbackState?.state ?: PlaybackState.STATE_NONE)
         }
-        val chosen = SessionSelector.select(candidates, ctx.packageName, preferredPackage)
+        val chosen = SessionSelector.select(candidates, ctx.packageName)
         current = chosen?.let { controllers[it.id.toInt()] }
-        publish(NowPlayingState(accessGranted = true, nowPlaying = current?.let { toNowPlaying(it) }))
+        val now = SystemClock.elapsedRealtime()
+        val fresh = current?.let { toNowPlaying(it) }
+        val shown = grace.filter(fresh, now)
+        handler.removeCallbacks(recheck)
+        if (fresh == null && shown != null) handler.postDelayed(recheck, grace.remainingMs(now) + 30L)
+        publish(NowPlayingState(accessGranted = true, nowPlaying = shown))
     }
 
     private fun toNowPlaying(c: MediaController): NowPlaying {

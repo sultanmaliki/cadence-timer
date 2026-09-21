@@ -1,0 +1,766 @@
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=312864 pos=300698 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] peak=120.9 low=0.65 mid=0.65 high=0.49
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=84.723076 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=312864 pos=303123 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] peak=108.5 low=0.65 mid=0.65 high=0.62
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=109.713264 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=312864 pos=305343 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] peak=131.5 low=0.65 mid=0.65 high=0.39
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=143.62799 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=312864 pos=307675 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] peak=155.3 low=0.65 mid=0.65 high=0.45
+[viz] stopped
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=312864 pos=310020 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] ACTIVE: first non-zero data peak=93.64828 samplingRate=48000Hz size=1024
+[viz] peak=93.6 low=0.65 mid=0.65 high=0.53
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=41.109608 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=312864 pos=312370 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] peak=5.0 low=0.49 mid=0.49 high=0.45
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=312864 pos=312370 speed=1.0 actions=2360319 keys=null
+[art] trimmed bars 256x143 -> 144x143
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=9 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, and
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=35 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, an
+[viz] stopped
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=1378 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, 
+[viz] ACTIVE: first non-zero data peak=125.09996 samplingRate=48000Hz size=1024
+[viz] peak=125.1 low=0.65 mid=0.65 high=0.30
+[viz] stopped
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=3684 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, 
+[viz] ACTIVE: first non-zero data peak=83.60024 samplingRate=48000Hz size=1024
+[viz] peak=83.6 low=0.65 mid=0.65 high=0.38
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=136.74063 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=6030 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, 
+[viz] peak=136.9 low=0.65 mid=0.65 high=0.28
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=124.197426 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=8347 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, 
+[viz] peak=91.9 low=0.65 mid=0.65 high=0.34
+[viz] stopped
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=10721 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=146.4138 samplingRate=48000Hz size=1024
+[viz] peak=146.4 low=0.65 mid=0.65 high=0.36
+[viz] stopped
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=13068 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=101.788994 samplingRate=48000Hz size=1024
+[viz] peak=101.8 low=0.65 mid=0.65 high=0.39
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=147.63469 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=15369 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] peak=131.8 low=0.65 mid=0.65 high=0.65
+[viz] stopped
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=17742 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=103.04368 samplingRate=48000Hz size=1024
+[viz] peak=103.0 low=0.65 mid=0.65 high=0.65
+[viz] stopped
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=20111 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=102.20078 samplingRate=48000Hz size=1024
+[viz] peak=102.2 low=0.65 mid=0.65 high=0.46
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=94.02127 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=22455 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] peak=78.6 low=0.65 mid=0.65 high=0.56
+[viz] stopped
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=24823 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=133.25539 samplingRate=48000Hz size=1024
+[viz] peak=133.3 low=0.65 mid=0.65 high=0.42
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=127.22421 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=27147 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] peak=139.3 low=0.65 mid=0.65 high=0.65
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=90.21086 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=29499 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] peak=125.4 low=0.65 mid=0.65 high=0.47
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=131.24405 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=31810 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] peak=120.8 low=0.65 mid=0.65 high=0.65
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=90.24966 samplingRate=48000Hz size=1024
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=34193 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] peak=114.0 low=0.65 mid=0.65 high=0.51
+[viz] peak=94.5 low=0.61 mid=0.82 high=0.37
+[viz] peak=142.2 low=0.40 mid=0.69 high=0.34
+[nowplaying] access=true nothing-playing
+[viz] peak=117.7 low=0.57 mid=0.78 high=0.55
+[nowplaying] onListenerConnected
+[nowplaying] refresh: granted=false
+[nowplaying] access=false
+[viz] peak=99.2 low=0.80 mid=0.66 high=0.29
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=43939 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] ACTIVE: first non-zero data peak=115.316956 samplingRate=48000Hz size=1024
+[viz] peak=115.3 low=0.65 mid=0.65 high=0.43
+[nowplaying] refresh: granted=true
+[nowplaying] access revoked or not yet effective
+java.lang.SecurityException: Missing permission to control media.
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3361)
+	at android.os.Parcel.createException(Parcel.java:3345)
+	at android.os.Parcel.readException(Parcel.java:3328)
+	at android.os.Parcel.readException(Parcel.java:3270)
+	at android.media.session.ISessionManager$Stub$Proxy.getSessions(ISessionManager.java:688)
+	at android.media.session.MediaSessionManager.getActiveSessionsForUser(MediaSessionManager.java:267)
+	at android.media.session.MediaSessionManager.getActiveSessions(MediaSessionManager.java:189)
+	at dev.fitnesstimer.nowplaying.NowPlayingRepository.refresh(NowPlayingRepository.kt:70)
+	at dev.fitnesstimer.nowplaying.NowPlayingListenerService.onListenerDisconnected(NowPlayingListenerService.kt:20)
+	at android.service.notification.NotificationListenerService.onDestroy(NotificationListenerService.java:1318)
+	at android.app.ActivityThread.handleStopService(ActivityThread.java:5985)
+	at android.app.ActivityThread.-$$Nest$mhandleStopService(ActivityThread.java:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2941)
+	at android.os.Handler.dispatchMessage(Handler.java:114)
+	at android.os.Looper.loopOnce(Looper.java:274)
+	at android.os.Looper.loop(Looper.java:369)
+	at android.app.ActivityThread.main(ActivityThread.java:10090)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:616)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1137)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.media.MediaSessionService.enforceMediaPermissions(MediaSessionService.java:950)
+	at com.android.server.media.MediaSessionService.-$$Nest$menforceMediaPermissions(MediaSessionService.java:0)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.verifySessionsRequest(MediaSessionService.java:2549)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.getSessions(MediaSessionService.java:1628)
+	at android.media.session.ISessionManager$Stub.onTransact(ISessionManager.java:327)
+
+[nowplaying] access=false
+[viz] peak=87.6 low=0.69 mid=0.65 high=0.99
+[nowplaying] onListenerConnected
+[nowplaying] refresh: granted=false
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=48399 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] ACTIVE: first non-zero data peak=167.6574 samplingRate=48000Hz size=1024
+[viz] peak=167.7 low=0.65 mid=0.65 high=0.36
+[nowplaying] refresh: granted=true
+[nowplaying] access revoked or not yet effective
+java.lang.SecurityException: Missing permission to control media.
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3361)
+	at android.os.Parcel.createException(Parcel.java:3345)
+	at android.os.Parcel.readException(Parcel.java:3328)
+	at android.os.Parcel.readException(Parcel.java:3270)
+	at android.media.session.ISessionManager$Stub$Proxy.getSessions(ISessionManager.java:688)
+	at android.media.session.MediaSessionManager.getActiveSessionsForUser(MediaSessionManager.java:267)
+	at android.media.session.MediaSessionManager.getActiveSessions(MediaSessionManager.java:189)
+	at dev.fitnesstimer.nowplaying.NowPlayingRepository.refresh(NowPlayingRepository.kt:70)
+	at dev.fitnesstimer.nowplaying.NowPlayingListenerService.onListenerDisconnected(NowPlayingListenerService.kt:20)
+	at android.service.notification.NotificationListenerService.onDestroy(NotificationListenerService.java:1318)
+	at android.app.ActivityThread.handleStopService(ActivityThread.java:5985)
+	at android.app.ActivityThread.-$$Nest$mhandleStopService(ActivityThread.java:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2941)
+	at android.os.Handler.dispatchMessage(Handler.java:114)
+	at android.os.Looper.loopOnce(Looper.java:274)
+	at android.os.Looper.loop(Looper.java:369)
+	at android.app.ActivityThread.main(ActivityThread.java:10090)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:616)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1137)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.media.MediaSessionService.enforceMediaPermissions(MediaSessionService.java:950)
+	at com.android.server.media.MediaSessionService.-$$Nest$menforceMediaPermissions(MediaSessionService.java:0)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.verifySessionsRequest(MediaSessionService.java:2549)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.getSessions(MediaSessionService.java:1628)
+	at android.media.session.ISessionManager$Stub.onTransact(ISessionManager.java:327)
+
+[nowplaying] access=false
+[viz] peak=72.0 low=0.65 mid=0.78 high=0.43
+[nowplaying] onListenerConnected
+[nowplaying] refresh: granted=false
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=52867 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] ACTIVE: first non-zero data peak=131.54848 samplingRate=48000Hz size=1024
+[viz] peak=131.5 low=0.65 mid=0.65 high=0.43
+[nowplaying] refresh: granted=true
+[nowplaying] access revoked or not yet effective
+java.lang.SecurityException: Missing permission to control media.
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3361)
+	at android.os.Parcel.createException(Parcel.java:3345)
+	at android.os.Parcel.readException(Parcel.java:3328)
+	at android.os.Parcel.readException(Parcel.java:3270)
+	at android.media.session.ISessionManager$Stub$Proxy.getSessions(ISessionManager.java:688)
+	at android.media.session.MediaSessionManager.getActiveSessionsForUser(MediaSessionManager.java:267)
+	at android.media.session.MediaSessionManager.getActiveSessions(MediaSessionManager.java:189)
+	at dev.fitnesstimer.nowplaying.NowPlayingRepository.refresh(NowPlayingRepository.kt:70)
+	at dev.fitnesstimer.nowplaying.NowPlayingListenerService.onListenerDisconnected(NowPlayingListenerService.kt:20)
+	at android.service.notification.NotificationListenerService.onDestroy(NotificationListenerService.java:1318)
+	at android.app.ActivityThread.handleStopService(ActivityThread.java:5985)
+	at android.app.ActivityThread.-$$Nest$mhandleStopService(ActivityThread.java:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2941)
+	at android.os.Handler.dispatchMessage(Handler.java:114)
+	at android.os.Looper.loopOnce(Looper.java:274)
+	at android.os.Looper.loop(Looper.java:369)
+	at android.app.ActivityThread.main(ActivityThread.java:10090)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:616)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1137)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.media.MediaSessionService.enforceMediaPermissions(MediaSessionService.java:950)
+	at com.android.server.media.MediaSessionService.-$$Nest$menforceMediaPermissions(MediaSessionService.java:0)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.verifySessionsRequest(MediaSessionService.java:2549)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.getSessions(MediaSessionService.java:1628)
+	at android.media.session.ISessionManager$Stub.onTransact(ISessionManager.java:327)
+
+[nowplaying] access=false
+[viz] peak=108.9 low=0.68 mid=0.55 high=0.38
+[nowplaying] onListenerConnected
+[nowplaying] refresh: granted=false
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=57424 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] ACTIVE: first non-zero data peak=85.04117 samplingRate=48000Hz size=1024
+[viz] peak=85.0 low=0.65 mid=0.65 high=0.65
+[nowplaying] refresh: granted=true
+[nowplaying] access revoked or not yet effective
+java.lang.SecurityException: Missing permission to control media.
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3361)
+	at android.os.Parcel.createException(Parcel.java:3345)
+	at android.os.Parcel.readException(Parcel.java:3328)
+	at android.os.Parcel.readException(Parcel.java:3270)
+	at android.media.session.ISessionManager$Stub$Proxy.getSessions(ISessionManager.java:688)
+	at android.media.session.MediaSessionManager.getActiveSessionsForUser(MediaSessionManager.java:267)
+	at android.media.session.MediaSessionManager.getActiveSessions(MediaSessionManager.java:189)
+	at dev.fitnesstimer.nowplaying.NowPlayingRepository.refresh(NowPlayingRepository.kt:70)
+	at dev.fitnesstimer.nowplaying.NowPlayingListenerService.onListenerDisconnected(NowPlayingListenerService.kt:20)
+	at android.service.notification.NotificationListenerService.onDestroy(NotificationListenerService.java:1318)
+	at android.app.ActivityThread.handleStopService(ActivityThread.java:5985)
+	at android.app.ActivityThread.-$$Nest$mhandleStopService(ActivityThread.java:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2941)
+	at android.os.Handler.dispatchMessage(Handler.java:114)
+	at android.os.Looper.loopOnce(Looper.java:274)
+	at android.os.Looper.loop(Looper.java:369)
+	at android.app.ActivityThread.main(ActivityThread.java:10090)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:616)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1137)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.media.MediaSessionService.enforceMediaPermissions(MediaSessionService.java:950)
+	at com.android.server.media.MediaSessionService.-$$Nest$menforceMediaPermissions(MediaSessionService.java:0)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.verifySessionsRequest(MediaSessionService.java:2549)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.getSessions(MediaSessionService.java:1628)
+	at android.media.session.ISessionManager$Stub.onTransact(ISessionManager.java:327)
+
+[nowplaying] access=false
+[viz] peak=134.5 low=0.74 mid=0.55 high=0.31
+[nowplaying] onListenerConnected
+[nowplaying] refresh: granted=false
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=61894 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] ACTIVE: first non-zero data peak=116.297035 samplingRate=48000Hz size=1024
+[viz] peak=116.3 low=0.65 mid=0.65 high=0.65
+[nowplaying] refresh: granted=true
+[nowplaying] access revoked or not yet effective
+java.lang.SecurityException: Missing permission to control media.
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3361)
+	at android.os.Parcel.createException(Parcel.java:3345)
+	at android.os.Parcel.readException(Parcel.java:3328)
+	at android.os.Parcel.readException(Parcel.java:3270)
+	at android.media.session.ISessionManager$Stub$Proxy.getSessions(ISessionManager.java:688)
+	at android.media.session.MediaSessionManager.getActiveSessionsForUser(MediaSessionManager.java:267)
+	at android.media.session.MediaSessionManager.getActiveSessions(MediaSessionManager.java:189)
+	at dev.fitnesstimer.nowplaying.NowPlayingRepository.refresh(NowPlayingRepository.kt:70)
+	at dev.fitnesstimer.nowplaying.NowPlayingListenerService.onListenerDisconnected(NowPlayingListenerService.kt:20)
+	at android.service.notification.NotificationListenerService.onDestroy(NotificationListenerService.java:1318)
+	at android.app.ActivityThread.handleStopService(ActivityThread.java:5985)
+	at android.app.ActivityThread.-$$Nest$mhandleStopService(ActivityThread.java:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2941)
+	at android.os.Handler.dispatchMessage(Handler.java:114)
+	at android.os.Looper.loopOnce(Looper.java:274)
+	at android.os.Looper.loop(Looper.java:369)
+	at android.app.ActivityThread.main(ActivityThread.java:10090)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:616)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1137)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.media.MediaSessionService.enforceMediaPermissions(MediaSessionService.java:950)
+	at com.android.server.media.MediaSessionService.-$$Nest$menforceMediaPermissions(MediaSessionService.java:0)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.verifySessionsRequest(MediaSessionService.java:2549)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.getSessions(MediaSessionService.java:1628)
+	at android.media.session.ISessionManager$Stub.onTransact(ISessionManager.java:327)
+
+[nowplaying] access=false
+[viz] peak=116.7 low=0.55 mid=0.79 high=0.44
+[nowplaying] onListenerConnected
+[nowplaying] refresh: granted=false
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=103.24728 samplingRate=48000Hz size=1024
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=66397 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] peak=129.6 low=0.65 mid=0.65 high=0.52
+[nowplaying] refresh: granted=true
+[nowplaying] access revoked or not yet effective
+java.lang.SecurityException: Missing permission to control media.
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3361)
+	at android.os.Parcel.createException(Parcel.java:3345)
+	at android.os.Parcel.readException(Parcel.java:3328)
+	at android.os.Parcel.readException(Parcel.java:3270)
+	at android.media.session.ISessionManager$Stub$Proxy.getSessions(ISessionManager.java:688)
+	at android.media.session.MediaSessionManager.getActiveSessionsForUser(MediaSessionManager.java:267)
+	at android.media.session.MediaSessionManager.getActiveSessions(MediaSessionManager.java:189)
+	at dev.fitnesstimer.nowplaying.NowPlayingRepository.refresh(NowPlayingRepository.kt:70)
+	at dev.fitnesstimer.nowplaying.NowPlayingListenerService.onListenerDisconnected(NowPlayingListenerService.kt:20)
+	at android.service.notification.NotificationListenerService.onDestroy(NotificationListenerService.java:1318)
+	at android.app.ActivityThread.handleStopService(ActivityThread.java:5985)
+	at android.app.ActivityThread.-$$Nest$mhandleStopService(ActivityThread.java:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2941)
+	at android.os.Handler.dispatchMessage(Handler.java:114)
+	at android.os.Looper.loopOnce(Looper.java:274)
+	at android.os.Looper.loop(Looper.java:369)
+	at android.app.ActivityThread.main(ActivityThread.java:10090)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:616)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1137)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.media.MediaSessionService.enforceMediaPermissions(MediaSessionService.java:950)
+	at com.android.server.media.MediaSessionService.-$$Nest$menforceMediaPermissions(MediaSessionService.java:0)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.verifySessionsRequest(MediaSessionService.java:2549)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.getSessions(MediaSessionService.java:1628)
+	at android.media.session.ISessionManager$Stub.onTransact(ISessionManager.java:327)
+
+[nowplaying] access=false
+[viz] peak=99.8 low=0.86 mid=0.56 high=0.31
+[nowplaying] onListenerConnected
+[nowplaying] refresh: granted=false
+[viz] stopped
+[viz] ACTIVE: first non-zero data peak=136.52838 samplingRate=48000Hz size=1024
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=70841 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] peak=95.8 low=0.65 mid=0.65 high=0.56
+[nowplaying] refresh: granted=true
+[nowplaying] access revoked or not yet effective
+java.lang.SecurityException: Missing permission to control media.
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3361)
+	at android.os.Parcel.createException(Parcel.java:3345)
+	at android.os.Parcel.readException(Parcel.java:3328)
+	at android.os.Parcel.readException(Parcel.java:3270)
+	at android.media.session.ISessionManager$Stub$Proxy.getSessions(ISessionManager.java:688)
+	at android.media.session.MediaSessionManager.getActiveSessionsForUser(MediaSessionManager.java:267)
+	at android.media.session.MediaSessionManager.getActiveSessions(MediaSessionManager.java:189)
+	at dev.fitnesstimer.nowplaying.NowPlayingRepository.refresh(NowPlayingRepository.kt:70)
+	at dev.fitnesstimer.nowplaying.NowPlayingListenerService.onListenerDisconnected(NowPlayingListenerService.kt:20)
+	at android.service.notification.NotificationListenerService.onDestroy(NotificationListenerService.java:1318)
+	at android.app.ActivityThread.handleStopService(ActivityThread.java:5985)
+	at android.app.ActivityThread.-$$Nest$mhandleStopService(ActivityThread.java:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2941)
+	at android.os.Handler.dispatchMessage(Handler.java:114)
+	at android.os.Looper.loopOnce(Looper.java:274)
+	at android.os.Looper.loop(Looper.java:369)
+	at android.app.ActivityThread.main(ActivityThread.java:10090)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:616)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1137)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.media.MediaSessionService.enforceMediaPermissions(MediaSessionService.java:950)
+	at com.android.server.media.MediaSessionService.-$$Nest$menforceMediaPermissions(MediaSessionService.java:0)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.verifySessionsRequest(MediaSessionService.java:2549)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.getSessions(MediaSessionService.java:1628)
+	at android.media.session.ISessionManager$Stub.onTransact(ISessionManager.java:327)
+
+[nowplaying] access=false
+[viz] peak=118.4 low=0.81 mid=0.78 high=0.39
+[nowplaying] onListenerConnected
+[nowplaying] refresh: granted=false
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=75350 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] ACTIVE: first non-zero data peak=88.005684 samplingRate=48000Hz size=1024
+[viz] peak=88.0 low=0.65 mid=0.65 high=0.35
+[nowplaying] refresh: granted=true
+[nowplaying] access revoked or not yet effective
+java.lang.SecurityException: Missing permission to control media.
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3361)
+	at android.os.Parcel.createException(Parcel.java:3345)
+	at android.os.Parcel.readException(Parcel.java:3328)
+	at android.os.Parcel.readException(Parcel.java:3270)
+	at android.media.session.ISessionManager$Stub$Proxy.getSessions(ISessionManager.java:688)
+	at android.media.session.MediaSessionManager.getActiveSessionsForUser(MediaSessionManager.java:267)
+	at android.media.session.MediaSessionManager.getActiveSessions(MediaSessionManager.java:189)
+	at dev.fitnesstimer.nowplaying.NowPlayingRepository.refresh(NowPlayingRepository.kt:70)
+	at dev.fitnesstimer.nowplaying.NowPlayingListenerService.onListenerDisconnected(NowPlayingListenerService.kt:20)
+	at android.service.notification.NotificationListenerService.onDestroy(NotificationListenerService.java:1318)
+	at android.app.ActivityThread.handleStopService(ActivityThread.java:5985)
+	at android.app.ActivityThread.-$$Nest$mhandleStopService(ActivityThread.java:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2941)
+	at android.os.Handler.dispatchMessage(Handler.java:114)
+	at android.os.Looper.loopOnce(Looper.java:274)
+	at android.os.Looper.loop(Looper.java:369)
+	at android.app.ActivityThread.main(ActivityThread.java:10090)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:616)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1137)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.media.MediaSessionService.enforceMediaPermissions(MediaSessionService.java:950)
+	at com.android.server.media.MediaSessionService.-$$Nest$menforceMediaPermissions(MediaSessionService.java:0)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.verifySessionsRequest(MediaSessionService.java:2549)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.getSessions(MediaSessionService.java:1628)
+	at android.media.session.ISessionManager$Stub.onTransact(ISessionManager.java:327)
+
+[nowplaying] access=false
+[viz] peak=115.1 low=0.45 mid=0.80 high=0.44
+[nowplaying] onListenerConnected
+[nowplaying] refresh: granted=false
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=79775 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] ACTIVE: first non-zero data peak=131.24405 samplingRate=48000Hz size=1024
+[viz] peak=131.2 low=0.65 mid=0.65 high=0.34
+[nowplaying] refresh: granted=true
+[nowplaying] access revoked or not yet effective
+java.lang.SecurityException: Missing permission to control media.
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:3361)
+	at android.os.Parcel.createException(Parcel.java:3345)
+	at android.os.Parcel.readException(Parcel.java:3328)
+	at android.os.Parcel.readException(Parcel.java:3270)
+	at android.media.session.ISessionManager$Stub$Proxy.getSessions(ISessionManager.java:688)
+	at android.media.session.MediaSessionManager.getActiveSessionsForUser(MediaSessionManager.java:267)
+	at android.media.session.MediaSessionManager.getActiveSessions(MediaSessionManager.java:189)
+	at dev.fitnesstimer.nowplaying.NowPlayingRepository.refresh(NowPlayingRepository.kt:70)
+	at dev.fitnesstimer.nowplaying.NowPlayingListenerService.onListenerDisconnected(NowPlayingListenerService.kt:20)
+	at android.service.notification.NotificationListenerService.onDestroy(NotificationListenerService.java:1318)
+	at android.app.ActivityThread.handleStopService(ActivityThread.java:5985)
+	at android.app.ActivityThread.-$$Nest$mhandleStopService(ActivityThread.java:0)
+	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2941)
+	at android.os.Handler.dispatchMessage(Handler.java:114)
+	at android.os.Looper.loopOnce(Looper.java:274)
+	at android.os.Looper.loop(Looper.java:369)
+	at android.app.ActivityThread.main(ActivityThread.java:10090)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:616)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:1137)
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.media.MediaSessionService.enforceMediaPermissions(MediaSessionService.java:950)
+	at com.android.server.media.MediaSessionService.-$$Nest$menforceMediaPermissions(MediaSessionService.java:0)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.verifySessionsRequest(MediaSessionService.java:2549)
+	at com.android.server.media.MediaSessionService$SessionManagerImpl.getSessions(MediaSessionService.java:1628)
+	at android.media.session.ISessionManager$Stub.onTransact(ISessionManager.java:327)
+
+[nowplaying] access=false
+[viz] peak=126.6 low=0.80 mid=0.67 high=0.43
+[nowplaying] onListenerConnected
+[nowplaying] refresh: granted=false
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=84233 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] ACTIVE: first non-zero data peak=124.01613 samplingRate=48000Hz size=1024
+[viz] peak=124.0 low=0.65 mid=0.65 high=0.46
+[viz] peak=138.9 low=0.81 mid=0.60 high=0.31
+[viz] peak=128.0 low=0.79 mid=0.77 high=0.41
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=89598 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=89851 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=89859 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=89867 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=137.61177 samplingRate=48000Hz size=1024
+[viz] peak=137.6 low=0.65 mid=0.65 high=0.39
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=89902 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=91111 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=125.57468 samplingRate=48000Hz size=1024
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=91311 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=91318 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=91325 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] peak=98.8 low=0.65 mid=0.65 high=0.33
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=91354 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=92861 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=93107 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=93114 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=93124 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=93136 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=123.36936 samplingRate=48000Hz size=1024
+[viz] peak=123.4 low=0.65 mid=0.65 high=0.35
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=93182 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=94506 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=94748 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=94766 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=112.898186 samplingRate=48000Hz size=1024
+[viz] peak=112.9 low=0.65 mid=0.65 high=0.48
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=94842 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=94851 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=94891 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=96185 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=96371 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=96429 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=96443 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=142.43594 samplingRate=48000Hz size=1024
+[viz] peak=142.4 low=0.65 mid=0.65 high=0.32
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=96484 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=97927 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=111.44954 samplingRate=48000Hz size=1024
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=98184 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=98196 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=98205 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] peak=100.4 low=0.65 mid=0.65 high=0.46
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=98244 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=99569 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=99793 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=99802 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=99809 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] ACTIVE: first non-zero data peak=132.8006 samplingRate=48000Hz size=1024
+[viz] peak=132.8 low=0.65 mid=0.65 high=0.45
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=99866 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM,
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=101243 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=101463 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=101471 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=101480 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] ACTIVE: first non-zero data peak=130.63307 samplingRate=48000Hz size=1024
+[viz] peak=130.6 low=0.65 mid=0.65 high=0.54
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=101517 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=102939 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] ACTIVE: first non-zero data peak=98.89894 samplingRate=48000Hz size=1024
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=103179 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=103186 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=103193 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] peak=155.1 low=0.65 mid=0.65 high=0.57
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=103233 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=104638 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=104869 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=104880 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=104890 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] ACTIVE: first non-zero data peak=115.00435 samplingRate=48000Hz size=1024
+[viz] peak=115.0 low=0.65 mid=0.65 high=0.53
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=104925 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=106328 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] ACTIVE: first non-zero data peak=89.453896 samplingRate=48000Hz size=1024
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=106544 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=106553 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=106562 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] peak=127.7 low=0.65 mid=0.65 high=0.47
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=106597 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=107987 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] ACTIVE: first non-zero data peak=103.46497 samplingRate=48000Hz size=1024
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=108253 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=108261 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=108270 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] peak=142.8 low=0.65 mid=0.65 high=0.50
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=108303 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=109677 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=109922 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=109931 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=109939 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] ACTIVE: first non-zero data peak=107.61505 samplingRate=48000Hz size=1024
+[viz] peak=107.6 low=0.65 mid=0.65 high=0.65
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=109976 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=111376 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=111612 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=111621 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] ACTIVE: first non-zero data peak=101.35581 samplingRate=48000Hz size=1024
+[viz] peak=101.4 low=0.65 mid=0.65 high=0.34
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=111633 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=111663 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] stopped
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=113085 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+connecting MediaController...
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=113255 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=113265 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=113341 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] ACTIVE: first non-zero data peak=136.85759 samplingRate=48000Hz size=1024
+[viz] peak=136.9 low=0.65 mid=0.65 high=0.40
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=113350 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+MediaController connected: isConnected=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=113382 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[viz] stopped
+[debug] np action=next np=com.miui.player state=3
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=114797 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=114797 speed=1.0 actions=2360319 keys=null
+[viz] ACTIVE: first non-zero data peak=106.16968 samplingRate=48000Hz size=1024
+[viz] peak=106.2 low=0.65 mid=0.65 high=0.33
+[art] trimmed bars 256x143 -> 144x143
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=6 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, and
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=32 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, an
+[viz] stopped
+[debug] np action=prev np=com.miui.player state=3
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=379 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, a
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=379 speed=1.0 actions=2360319 keys=null
+[viz] ACTIVE: first non-zero data peak=1.4142135 samplingRate=48000Hz size=1024
+[viz] peak=1.4 low=0.23 mid=0.24 high=0.29
+[art] trimmed bars 256x143 -> 144x143
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=8 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, and
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=46 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, an
+[viz] stopped
+[debug] np action=next np=com.miui.player state=3
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=395 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, a
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=280296 pos=395 speed=1.0 actions=2360319 keys=null
+[viz] ACTIVE: first non-zero data peak=107.62899 samplingRate=48000Hz size=1024
+[viz] peak=107.6 low=0.65 mid=0.65 high=0.39
+[art] trimmed bars 256x143 -> 144x143
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=12 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, an
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=53 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, an
+[viz] stopped
+[debug] np action=next np=com.miui.player state=3
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=401 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, a
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=401 speed=1.0 actions=2360319 keys=null
+[viz] ACTIVE: first non-zero data peak=1.0 samplingRate=48000Hz size=1024
+[viz] peak=1.0 low=0.27 mid=0.27 high=0.27
+[art] trimmed bars 256x143 -> 144x143
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=279096 pos=5 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, and
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=279096 pos=20 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, an
+[viz] stopped
+[debug] np action=prev np=com.miui.player state=3
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=279096 pos=383 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, a
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=279096 pos=383 speed=1.0 actions=2360319 keys=null
+[viz] ACTIVE: first non-zero data peak=80.05623 samplingRate=48000Hz size=1024
+[viz] peak=80.1 low=0.65 mid=0.65 high=0.44
+[art] trimmed bars 256x143 -> 144x143
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=7 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, and
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=15 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, an
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=55 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, an
+[viz] stopped
+[debug] np action=next np=com.miui.player state=3
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[nowplaying] refresh: granted=true
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=147000 pos=386 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, a
+[nowplaying] access=true pkg=com.miui.player state=1 art=none artUri=false dur=279096 pos=0 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, androi
+[nowplaying] access=true pkg=com.miui.player state=1 art=none artUri=false dur=279096 pos=0 speed=1.0 actions=2360319 keys=null
+[viz] ACTIVE: first non-zero data peak=1.4142135 samplingRate=48000Hz size=1024
+[viz] peak=1.4 low=0.23 mid=0.24 high=0.29
+[nowplaying] access=true pkg=com.miui.player state=3 art=none artUri=false dur=279096 pos=13 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, andro
+[art] trimmed bars 256x143 -> 144x143
+[nowplaying] access=true pkg=com.miui.player state=3 art=144x143 artUri=false dur=279096 pos=76 speed=1.0 actions=2360319 keys=[android.media.metadata.ALBUM, an
+[viz] peak=157.0 low=0.86 mid=0.67 high=0.36
+[viz] peak=125.9 low=0.83 mid=0.58 high=0.32
+[viz] peak=125.2 low=0.67 mid=0.63 high=0.45
+[viz] peak=115.9 low=0.68 mid=0.55 high=0.69
+[viz] peak=71.6 low=0.57 mid=0.56 high=0.30
+[viz] peak=144.6 low=0.73 mid=0.62 high=0.23
+[viz] peak=118.9 low=0.80 mid=0.55 high=0.23
+[viz] peak=83.6 low=0.56 mid=0.53 high=0.57

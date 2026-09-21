@@ -72,6 +72,22 @@ class AudioBandsTest {
         assertTrue(out.all { it < 0.35f })
     }
 
+    @Test fun quietPassageAfterALoudOneStaysVisible() {
+        // Regression: after a loud section, a quiet steady one used to shrink to ~0 (invisible wave).
+        val nrm = BandNormalizer()
+        repeat(100) { nrm.normalize(floatArrayOf(2000f, 2000f, 2000f)) }          // loud
+        var quiet = FloatArray(3)
+        repeat(400) { quiet = nrm.normalize(floatArrayOf(300f, 300f, 300f)) }       // ~8 s of much quieter
+        assertTrue("levels=${quiet.toList()}", quiet.all { it >= 0.16f })
+    }
+
+    @Test fun trueSilenceStaysAtTheFloorNotAtZero() {
+        var out = FloatArray(3)
+        val nrm = BandNormalizer()
+        repeat(50) { out = nrm.normalize(floatArrayOf(0f, 0f, 0f)) }
+        assertTrue(out.all { it in 0.15f..0.17f })
+    }
+
     @Test fun aKickAfterSilenceIsStrong() {
         val nrm = BandNormalizer()
         repeat(30) { nrm.normalize(floatArrayOf(0f, 0f, 0f)) }

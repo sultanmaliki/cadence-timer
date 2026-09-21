@@ -13,8 +13,9 @@ android {
         // Not yet the final v1 minSdk decision.
         minSdk = 29
         targetSdk = 37
-        versionCode = 2
-        versionName = "0.2"
+        versionCode = 5
+        versionName = "0.2.3"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -54,6 +55,12 @@ dependencies {
     implementation(libs.media3.common)
     implementation(libs.media3.session)
     implementation(libs.androidx.palette.ktx)
+
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     testImplementation("junit:junit:4.13.2")
     // android.jar's org.json is a stub in JVM unit tests; use the real one.

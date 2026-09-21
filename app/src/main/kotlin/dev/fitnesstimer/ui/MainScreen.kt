@@ -234,10 +234,17 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         AudioLevelSource.refreshPermission(context)
     }
     val companionPlaying = companionMode && nowPlayingState.nowPlaying?.isPlaying == true
-    DisposableEffect(companionPlaying) {
-        AudioLevelSource.setWanted(companionPlaying)
-        onDispose { AudioLevelSource.setWanted(false) }
+    // Debounced off: sources report a brief "buffering"/skipping state at track changes, and
+    // stopping/restarting the capture each time reset the analysis and briefly blanked the wave.
+    LaunchedEffect(companionPlaying) {
+        if (companionPlaying) {
+            AudioLevelSource.setWanted(true)
+        } else {
+            delay(2500)
+            AudioLevelSource.setWanted(false)
+        }
     }
+    DisposableEffect(Unit) { onDispose { AudioLevelSource.setWanted(false) } }
 
     // Once per current item: sample ambient color, and embedded artwork
     // (used only in audio mode).

@@ -1,4 +1,4 @@
-# Contributing to Cadence
+# Contributing to SetBeat
 
 Thanks for looking. This is a small personal-use project, so the bar is simple: keep it small,
 keep it private, and say what you actually tested.
@@ -18,9 +18,21 @@ keep it private, and say what you actually tested.
 ./gradlew testDebugUnitTest lintDebug assembleDebug
 ```
 
-- Add or update unit tests for pure logic (timer, audio analysis, selection, colours). The
-  gesture engine and UI can't be scripted on some phones (MIUI blocks injected input), so say
-  plainly what you checked by hand and on which device and Android version.
+- On-device gesture tests (`app/src/androidTest`) run the real gesture engine using Compose's test
+  framework, which works even on phones that block `adb shell input`. Run them by hand so your app
+  data survives (Gradle's `connectedDebugAndroidTest` uninstalls the app afterwards):
+
+  ```bash
+  ./gradlew assembleDebug assembleDebugAndroidTest
+  adb install -r -t app/build/outputs/apk/debug/app-debug.apk
+  adb install -r -t app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+  adb shell am instrument -w dev.fitnesstimer.test/androidx.test.runner.AndroidJUnitRunner
+  ```
+
+- Add or update unit tests for pure logic (timer, audio analysis, selection, colours) and, for
+  gesture changes, an on-device test. Whole screens can't be scripted on some phones (MIUI blocks
+  injected input and permission grants), so say plainly what you checked by hand and on which
+  device and Android version.
 - Performance matters on a screen that is on for a whole workout: check frame times
   (`adb shell dumpsys gfxinfo dev.fitnesstimer`) if you touch anything that animates, and keep the
   paused screen fully idle.
