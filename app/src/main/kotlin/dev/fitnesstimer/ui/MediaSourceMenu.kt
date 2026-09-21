@@ -27,6 +27,7 @@ fun MediaSourceMenu(
     onDismiss: () -> Unit,
     onChooseFile: () -> Unit,
     onOpenPlaylists: () -> Unit,
+    onNowPlaying: () -> Unit,
 ) {
     Box(
         Modifier
@@ -38,10 +39,18 @@ fun MediaSourceMenu(
             Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 56.dp, end = 16.dp)
-                .width(220.dp)
+                .width(260.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(Color(0xFF1C1C1C))
         ) {
+            Text(
+                "Now playing (other apps)",
+                color = Color.White,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onNowPlaying)
+                    .padding(16.dp),
+            )
             Text(
                 "Choose file",
                 color = Color.White,

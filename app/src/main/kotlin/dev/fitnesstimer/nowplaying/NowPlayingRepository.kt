@@ -2,6 +2,7 @@ package dev.fitnesstimer.nowplaying
 
 import android.content.ComponentName
 import android.content.Context
+import android.graphics.Bitmap
 import android.media.MediaMetadata
 import android.media.session.MediaController
 import android.media.session.MediaSessionManager
@@ -164,7 +165,7 @@ object NowPlayingRepository {
                 ?: m?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
                 ?: m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE),
             album = m?.getString(MediaMetadata.METADATA_KEY_ALBUM),
-            artwork = bitmaps.maxByOrNull { it.width * it.height },
+            artwork = stableArtwork(c.packageName, m, bitmaps.maxByOrNull { it.width * it.height }),
             hasArtworkUri = hasUri,
             durationMs = m?.getLong(MediaMetadata.METADATA_KEY_DURATION)?.takeIf { it > 0 } ?: -1L,
             playbackState = ps?.state ?: PlaybackState.STATE_NONE,
@@ -173,6 +174,23 @@ object NowPlayingRepository {
             speed = ps?.playbackSpeed ?: 1f,
             actions = ps?.actions ?: 0L,
         )
+    }
+
+    // Each callback can hand back a fresh Bitmap copy of the same artwork;
+    // reuse the previous instance while the track identity is unchanged so
+    // UI effects keyed on the bitmap (color sampling) run once per track.
+    private var artKey: String? = null
+    private var artBitmap: Bitmap? = null
+
+    private fun stableArtwork(pkg: String, m: MediaMetadata?, fresh: Bitmap?): Bitmap? {
+        if (fresh == null) { artKey = null; artBitmap = null; return null }
+        val key = "$pkg|${m?.getString(MediaMetadata.METADATA_KEY_MEDIA_ID)}|" +
+            "${m?.getString(MediaMetadata.METADATA_KEY_TITLE)}|${m?.getString(MediaMetadata.METADATA_KEY_ARTIST)}|" +
+            "${fresh.width}x${fresh.height}"
+        if (key == artKey && artBitmap != null) return artBitmap
+        artKey = key
+        artBitmap = fresh
+        return fresh
     }
 
     private var lastLogged: String? = null

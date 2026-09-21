@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dev.fitnesstimer.nowplaying.NowPlayingRepository
+import dev.fitnesstimer.nowplaying.positionNow
 import dev.fitnesstimer.timer.AppTimer
 import dev.fitnesstimer.ui.MainScreen
 
@@ -39,6 +40,28 @@ class MainActivity : ComponentActivity() {
         }
         setContent {
             MainScreen(debugUris = debugUris)
+        }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        handleDebugAction(intent)
+    }
+
+    // Debuggable builds only: `--es debug_np_action playpause|next|prev|seek+|seek-` drives the same
+    // NowPlayingRepository calls the gestures use (MIUI blocks scripted touches).
+    private fun handleDebugAction(intent: android.content.Intent) {
+        val debuggable = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+        if (!debuggable) return
+        val np = NowPlayingRepository.state.value.nowPlaying
+        val action = intent.getStringExtra("debug_np_action") ?: return
+        android.util.Log.d("FitnessTimer", "[debug] np action=$action np=${np?.packageName} state=${np?.playbackState}")
+        when (action) {
+            "playpause" -> NowPlayingRepository.playPause()
+            "next" -> NowPlayingRepository.skipNext()
+            "prev" -> NowPlayingRepository.skipPrevious()
+            "seek+" -> np?.let { NowPlayingRepository.seekTo(it.positionNow() + 10_000L) }
+            "seek-" -> np?.let { NowPlayingRepository.seekTo((it.positionNow() - 10_000L).coerceAtLeast(0L)) }
         }
     }
 

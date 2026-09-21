@@ -28,3 +28,7 @@ fun extrapolatePosition(
 /** 0f..1f progress, or null when position or duration is unknown. */
 fun progressFraction(positionMs: Long, durationMs: Long): Float? =
     if (positionMs < 0 || durationMs <= 0) null else (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
+
+/** Position of [this] right now (elapsedRealtime basis), or [POSITION_UNKNOWN]. */
+fun NowPlaying.positionNow(nowElapsedMs: Long = android.os.SystemClock.elapsedRealtime()): Long =
+    extrapolatePosition(positionMs, positionUpdateElapsedMs, speed, isPlaying, nowElapsedMs, durationMs)

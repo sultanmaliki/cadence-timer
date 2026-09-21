@@ -1,12 +1,6 @@
 package dev.fitnesstimer.render
 
 import android.graphics.Bitmap
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -23,18 +17,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Brush
+import kotlinx.coroutines.delay
 import kotlin.math.sin
 
 private val ARTWORK_CORNER_RADIUS = 32.dp
@@ -56,13 +56,16 @@ fun AudioVisual(
     modifier: Modifier = Modifier,
     belowArtwork: @Composable () -> Unit = {},
 ) {
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        // Captured here: BoxWithConstraintsScope's maxWidth/maxHeight aren't
+        // reachable from inside the nested Column (DSL scope marker).
+        val tileMaxWidth = maxWidth * 0.85f
+        val tileMaxHeight = maxHeight * 0.5f
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             ArtworkTile(
                 artwork = artwork,
-                modifier = Modifier
-                    .fillMaxWidth(0.85f)
-                    .fillMaxHeight(0.5f),
+                maxWidth = tileMaxWidth,
+                maxHeight = tileMaxHeight,
             )
             Spacer(Modifier.height(28.dp))
             EqualizerBars(
@@ -85,75 +88,75 @@ fun AudioVisual(
  * square tile, since there's no real aspect ratio to preserve.
  */
 @Composable
-private fun ArtworkTile(artwork: Bitmap?, modifier: Modifier = Modifier) {
-    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
-        if (artwork != null && artwork.width > 0 && artwork.height > 0) {
-            val bitmapAspect = artwork.width.toFloat() / artwork.height.toFloat()
-            val boxAspect = maxWidth / maxHeight
-            val w: Dp
-            val h: Dp
-            if (bitmapAspect > boxAspect) {
-                w = maxWidth
-                h = maxWidth / bitmapAspect
-            } else {
-                h = maxHeight
-                w = maxHeight * bitmapAspect
-            }
-            Image(
-                bitmap = artwork.asImageBitmap(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(w, h).clip(RoundedCornerShape(ARTWORK_CORNER_RADIUS)),
-            )
+private fun ArtworkTile(artwork: Bitmap?, maxWidth: Dp, maxHeight: Dp) {
+    if (artwork != null && artwork.width > 0 && artwork.height > 0) {
+        val bitmapAspect = artwork.width.toFloat() / artwork.height.toFloat()
+        val boxAspect = maxWidth / maxHeight
+        val w: Dp
+        val h: Dp
+        if (bitmapAspect > boxAspect) {
+            w = maxWidth
+            h = maxWidth / bitmapAspect
         } else {
-            val side = if (maxWidth < maxHeight) maxWidth else maxHeight
-            Box(
-                Modifier
-                    .size(side)
-                    .clip(RoundedCornerShape(ARTWORK_CORNER_RADIUS))
-                    .background(Color.White.copy(alpha = 0.08f))
-            )
+            h = maxHeight
+            w = maxHeight * bitmapAspect
         }
+        Image(
+            bitmap = artwork.asImageBitmap(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.size(w, h).clip(RoundedCornerShape(ARTWORK_CORNER_RADIUS)),
+        )
+    } else {
+        val side = if (maxWidth < maxHeight) maxWidth else maxHeight
+        Box(
+            Modifier
+                .size(side)
+                .clip(RoundedCornerShape(ARTWORK_CORNER_RADIUS))
+                .background(Color.White.copy(alpha = 0.08f))
+        )
     }
 }
 
 @Composable
 private fun EqualizerBars(color: Color, isPlaying: Boolean, modifier: Modifier = Modifier) {
     val bars = 5
-    Box(modifier, contentAlignment = Alignment.Center) {
-        // Soft glow: a blurred wash of the ambient color behind the bars.
-        // Modifier.blur is a no-op below API 31 (confirmed in PLAN.md/
-        // DECISIONS.md research) — degrades gracefully to no glow, not a crash.
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(color.copy(alpha = 0.35f))
-                .blur(24.dp)
-        )
+    // The ambient color IS the background color, so bars in exactly that color
+    // are invisible; lighten toward white to keep the hue but contrast.
+    val barColor = lerp(color, Color.White, 0.6f)
+    // ~30 "frames" per second, not the display's 120Hz: bar motion doesn't
+    // need more, and continuous per-vsync animation is a real battery cost
+    // (measured on-device: ~120 fps while animating). Only ticks while playing.
+    var seconds by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(isPlaying) {
+        if (!isPlaying) return@LaunchedEffect
+        var t = seconds
+        while (true) {
+            delay(33)
+            t += 0.033f
+            seconds = t
+        }
+    }
+    Box(
+        modifier.background(
+            // Static radial glow. Modifier.blur (RenderEffect) was tried first
+            // and measured 20ms median frame time vs 8ms without it: it gets
+            // re-rendered every frame while the bars animate.
+            Brush.radialGradient(listOf(barColor.copy(alpha = 0.22f), Color.Transparent)),
+        ),
+        contentAlignment = Alignment.Center,
+    ) {
         Row(Modifier.fillMaxHeight(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Bottom) {
-            if (isPlaying) {
-                // Only while playing: infinite transitions redraw every frame,
-                // which is pure battery cost when the media is paused.
-                val transition = rememberInfiniteTransition(label = "equalizer")
-                repeat(bars) { index ->
-                    // Staggered duration per bar so they don't move in
-                    // lockstep — a plausible-looking loop, not real amplitude
-                    // data (see AudioVisual's doc comment for why).
-                    val phase = transition.animateFloat(
-                        initialValue = 0f,
-                        targetValue = (2 * Math.PI).toFloat(),
-                        animationSpec = infiniteRepeatable(
-                            animation = tween(500 + index * 90, easing = LinearEasing),
-                            repeatMode = RepeatMode.Restart,
-                        ),
-                        label = "bar$index",
-                    )
-                    // Read in the graphicsLayer lambda: animates in the draw
-                    // phase, with no layout/recomposition per frame.
-                    Bar(color) { 0.25f + 0.75f * ((sin(phase.value) + 1f) / 2f) }
+            repeat(bars) { index ->
+                // Staggered period per bar so they don't move in lockstep — a
+                // plausible-looking loop, not real amplitude data (see
+                // AudioVisual's doc comment for why). Read inside the
+                // graphicsLayer lambda: draw-phase only, no recomposition.
+                val period = 0.5f + index * 0.09f
+                Bar(barColor) {
+                    if (!isPlaying) 0.25f
+                    else 0.25f + 0.75f * ((sin(2f * Math.PI.toFloat() * seconds / period) + 1f) / 2f)
                 }
-            } else {
-                repeat(bars) { Bar(color) { 0.25f } }
             }
         }
     }

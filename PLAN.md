@@ -416,6 +416,44 @@ Built and unit-tested: `nowplaying/NowPlaying.kt`, `SessionSelector.kt`,
 - Could not test: listener rebind after the OS kills the process (`kill` is
   not permitted from the shell, and force-stop is not equivalent).
 
+### N.5c Implementation status (P2 done 2026-09-21)
+
+Built: source mode (companion is the default; picking a file/playlist
+switches to local; a new "Now playing (other apps)" entry in the top-right
+menu switches back and pauses local playback; the mode survives Activity
+recreation), `ui/CompanionScreen.kt` (`CompanionBody`, progress line,
+`NotificationAccessCard`), gestures routed by mode (seek +/-10s, drag-scrub
+with the same throttle, two-finger play/pause, two-finger swipe prev/next,
+all forwarded to the source app's transport controls).
+
+Verified on the test phone with Mi Music:
+- Screen shows the real artwork (rounded, native aspect), title, "artist ·
+  album", equalizer, timer and a progress line; ambient color sampled once
+  per track from the artwork.
+- Controls, driven through the same repository calls the gestures use (a
+  debuggable-only launch hook, since MIUI blocks injected touches):
+  play/pause toggled the source state 3 -> 2 -> 3; seek +10s / -10s moved
+  Mi Music's position by ~10s each way; next changed the track and prev
+  returned to it.
+- Onboarding card shown when access is off, over a working timer screen.
+- **Performance found by measurement and fixed:** the first version
+  rendered ~105 fps with a 20 ms median frame time. `Modifier.blur` on the
+  equalizer glow (RenderEffect, re-rendered every frame while the bars
+  animate) was the cost (20 ms -> 8 ms without it). Replaced by a static
+  radial gradient, and the five 120 Hz animations by one ~30 Hz ticker that
+  only runs while playing. Result: ~60 fps while playing, p50 8 ms,
+  p99 17 ms, and **0 frames while paused**.
+- Equalizer bars were invisible (same color as the background); now a
+  lightened variant of the ambient hue.
+- Layout: artwork tile is sized to the image itself (no dead space).
+
+Not verified (needs hands): the gestures themselves (touch injection is
+blocked), the real Settings toggle and any restricted-settings screen, the
+"Now playing" menu entry and file/playlist switching, other source apps
+(YouTube Music not observed), a source app that gives no artwork or no
+position/duration. Mi Music's artwork has dark side bars baked into the 16:9
+bitmap; trimming uniform borders is a possible polish item.
+
 ### N.6 Phases
 
 - **P0 — Probe (device) — DONE 2026-09-21, see N.4:** with music playing, dump `dumpsys media_session`
@@ -424,7 +462,7 @@ Built and unit-tested: `nowplaying/NowPlaying.kt`, `SessionSelector.kt`,
 - **P1 — Core — DONE 2026-09-21, see N.5b:** listener service + repository + `SessionSelector` +
   `PositionExtrapolator`; unit tests for both pure pieces. Test sources: our
   own `PlaybackService` session and YouTube Music on the phone.
-- **P2 — UI & control:** `NowPlayingScreen` reusing `AudioVisual`;
+- **P2 — UI & control — DONE 2026-09-21, see N.5c:** `NowPlayingScreen` reusing `AudioVisual`;
   gestures → transport controls; `NotificationAccessScreen`.
 - **P3 — Background countdown alarm:** exact alarm + high-importance
   notification (section F), since the screen will usually be off.

@@ -19,8 +19,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,10 +44,14 @@ import dev.fitnesstimer.gesture.TimerGestureActions
 import dev.fitnesstimer.gesture.timerGestures
 import dev.fitnesstimer.media.connectMediaController
 import dev.fitnesstimer.media.tryPersistReadGrant
+import dev.fitnesstimer.nowplaying.NowPlayingRepository
+import dev.fitnesstimer.nowplaying.POSITION_UNKNOWN
+import dev.fitnesstimer.nowplaying.positionNow
 import dev.fitnesstimer.render.AudioVisual
 import dev.fitnesstimer.render.NegativeTimerText
 import dev.fitnesstimer.render.sampleAmbientColor
 import dev.fitnesstimer.render.sampleAudioArtwork
+import dev.fitnesstimer.render.sampleColorFromBitmap
 import dev.fitnesstimer.timer.AppTimer
 import dev.fitnesstimer.timer.formatElapsed
 import kotlinx.coroutines.delay
@@ -121,10 +127,21 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
 
     val hasMedia = mediaItemCount > 0
 
+    // Source mode (PLAN.md N): COMPANION shows what another app is playing;
+    // otherwise the local player is shown. Survives Activity recreation.
+    var companionMode by rememberSaveable { mutableStateOf(debugUris.isEmpty()) }
+    var accessCardDismissed by rememberSaveable { mutableStateOf(false) }
+    val nowPlayingState by NowPlayingRepository.state.collectAsState()
+    var companionColor by remember { mutableStateOf(DEFAULT_AMBIENT) }
+    val liveCompanion by rememberUpdatedState(companionMode)
+    val liveNowPlaying by rememberUpdatedState(nowPlayingState.nowPlaying)
+
     DisposableEffect(controller) {
         val c = controller ?: return@DisposableEffect onDispose {}
         mediaItemCount = c.mediaItemCount
         isPlaying = c.isPlaying
+        // Local audio is already playing (e.g. app reopened): show it.
+        if (c.mediaItemCount > 0 && c.isPlaying) companionMode = false
         currentUri = c.currentMediaItem?.localConfiguration?.uri
         val initialGroups = c.currentTracks.groups
         if (initialGroups.isNotEmpty()) isAudioOnly = initialGroups.none { it.type == C.TRACK_TYPE_VIDEO }
@@ -186,6 +203,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         Log.d(TAG, "pickMedia result: uri=$uri")
         if (uri != null) {
             tryPersistReadGrant(context, uri)
+            companionMode = false
             pendingQueue = listOf(uri)
         }
     }
@@ -197,6 +215,13 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         val uri = currentUri ?: return@LaunchedEffect
         ambientColor = sampleAmbientColor(context, uri, DEFAULT_AMBIENT)
         audioArtwork = sampleAudioArtwork(context, uri)
+    }
+
+    // Ambient color for companion mode: sampled once per track from the
+    // source app's artwork (the repository keeps the bitmap instance stable).
+    val companionArtwork = nowPlayingState.nowPlaying?.artwork
+    LaunchedEffect(companionArtwork) {
+        companionColor = if (companionArtwork != null) sampleColorFromBitmap(companionArtwork, DEFAULT_AMBIENT) else DEFAULT_AMBIENT
     }
 
     // Drives recomposition of the timer text while running, and detects
@@ -229,47 +254,91 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
             },
             onHoldProgress = { holdProgress = it },
             onSeekBack = {
-                liveController?.let { c -> c.seekTo((c.currentPosition - 10_000L).coerceAtLeast(0L)) }
+                if (liveCompanion) {
+                    liveNowPlaying?.let { np ->
+                        val pos = np.positionNow()
+                        if (pos != POSITION_UNKNOWN) NowPlayingRepository.seekTo((pos - 10_000L).coerceAtLeast(0L))
+                    }
+                } else {
+                    liveController?.let { c -> c.seekTo((c.currentPosition - 10_000L).coerceAtLeast(0L)) }
+                }
             },
             onSeekForward = {
-                liveController?.let { c ->
-                    val duration = c.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
-                    c.seekTo((c.currentPosition + 10_000L).coerceAtMost(duration))
+                if (liveCompanion) {
+                    liveNowPlaying?.let { np ->
+                        val pos = np.positionNow()
+                        if (pos != POSITION_UNKNOWN) {
+                            val target = pos + 10_000L
+                            NowPlayingRepository.seekTo(if (np.durationMs > 0) target.coerceAtMost(np.durationMs) else target)
+                        }
+                    }
+                } else {
+                    liveController?.let { c ->
+                        val duration = c.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
+                        c.seekTo((c.currentPosition + 10_000L).coerceAtMost(duration))
+                    }
                 }
             },
             onScrub = { fractionDelta ->
-                liveController?.let { c ->
-                    val duration = c.duration
-                    if (duration > 0) {
-                        scrub.move(
-                            startPosition = { c.currentPosition },
-                            deltaMs = (fractionDelta * duration).toLong(),
-                            durationMs = duration,
-                            nowMs = android.os.SystemClock.uptimeMillis(),
-                        )?.let { c.seekTo(it) }
+                if (liveCompanion) {
+                    liveNowPlaying?.let { np ->
+                        if (np.durationMs > 0 && np.positionNow() != POSITION_UNKNOWN) {
+                            scrub.move(
+                                startPosition = { np.positionNow() },
+                                deltaMs = (fractionDelta * np.durationMs).toLong(),
+                                durationMs = np.durationMs,
+                                nowMs = android.os.SystemClock.uptimeMillis(),
+                            )?.let { NowPlayingRepository.seekTo(it) }
+                        }
+                    }
+                } else {
+                    liveController?.let { c ->
+                        val duration = c.duration
+                        if (duration > 0) {
+                            scrub.move(
+                                startPosition = { c.currentPosition },
+                                deltaMs = (fractionDelta * duration).toLong(),
+                                durationMs = duration,
+                                nowMs = android.os.SystemClock.uptimeMillis(),
+                            )?.let { c.seekTo(it) }
+                        }
                     }
                 }
             },
             onScrubEnd = {
                 val tail = scrub.end()
-                if (tail != null) liveController?.seekTo(tail)
+                if (tail != null) {
+                    if (liveCompanion) NowPlayingRepository.seekTo(tail) else liveController?.seekTo(tail)
+                }
             },
             onToggleMediaPlayPause = {
-                liveController?.let { c ->
-                    when {
-                        c.mediaItemCount == 0 -> {}
-                        c.isPlaying -> c.pause()
-                        else -> {
-                            if (c.playbackState == Player.STATE_ENDED) c.seekToDefaultPosition(0)
-                            if (c.playbackState == Player.STATE_IDLE) c.prepare()
-                            c.play()
+                if (liveCompanion) {
+                    NowPlayingRepository.playPause()
+                } else {
+                    liveController?.let { c ->
+                        when {
+                            c.mediaItemCount == 0 -> {}
+                            c.isPlaying -> c.pause()
+                            else -> {
+                                if (c.playbackState == Player.STATE_ENDED) c.seekToDefaultPosition(0)
+                                if (c.playbackState == Player.STATE_IDLE) c.prepare()
+                                c.play()
+                            }
                         }
                     }
                 }
             },
             // Clamped, not wraparound — no-op past either end of the queue.
-            onSkipNext = { liveController?.let { c -> if (c.hasNextMediaItem()) c.seekToNextMediaItem() } },
-            onSkipPrevious = { liveController?.let { c -> if (c.hasPreviousMediaItem()) c.seekToPreviousMediaItem() } },
+            // Companion mode forwards regardless of advertised actions (they
+            // are advisory; the source app decides).
+            onSkipNext = {
+                if (liveCompanion) NowPlayingRepository.skipNext()
+                else liveController?.let { c -> if (c.hasNextMediaItem()) c.seekToNextMediaItem() }
+            },
+            onSkipPrevious = {
+                if (liveCompanion) NowPlayingRepository.skipPrevious()
+                else liveController?.let { c -> if (c.hasPreviousMediaItem()) c.seekToPreviousMediaItem() }
+            },
             onTimerModePicker = { showTimerModeMenu = true },
             onMediaSourcePicker = { showSourceMenu = true },
         )
@@ -278,10 +347,17 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(if (hasMedia) ambientColor else DEFAULT_AMBIENT)
+            .background(if (companionMode) companionColor else if (hasMedia) ambientColor else DEFAULT_AMBIENT)
             .timerGestures(actions)
     ) {
         when {
+            companionMode -> CompanionBody(
+                nowPlaying = nowPlayingState.nowPlaying,
+                accessGranted = nowPlayingState.accessGranted,
+                ambientColor = companionColor,
+                timerText = { formatElapsed(timer.displayMs) },
+                holdProgress = { holdProgress },
+            )
             hasMedia && isAudioOnly -> {
                 // Timer goes BELOW the artwork here (AudioVisual's slot),
                 // not centered over it — the two were overlapping/clashing
@@ -331,7 +407,11 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         }
     }
 
-    playbackError?.let { msg ->
+    if (companionMode && !nowPlayingState.accessGranted && !accessCardDismissed) {
+        NotificationAccessCard(onDismiss = { accessCardDismissed = true })
+    }
+
+    if (!companionMode) playbackError?.let { msg ->
         Box(Modifier.fillMaxSize().padding(bottom = 48.dp), contentAlignment = Alignment.BottomCenter) {
             Text(msg, color = Color.White)
         }
@@ -340,6 +420,13 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
     if (showSourceMenu) {
         MediaSourceMenu(
             onDismiss = { showSourceMenu = false },
+            onNowPlaying = {
+                showSourceMenu = false
+                // Two audio sources at once would be confusing: stop local playback.
+                controller?.pause()
+                accessCardDismissed = false
+                companionMode = true
+            },
             onChooseFile = {
                 showSourceMenu = false
                 pickMedia.launch(arrayOf("video/*", "audio/*"))
@@ -355,6 +442,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         PlaylistScreen(
             onDismiss = { showPlaylistScreen = false },
             onPlayPlaylist = { playlist ->
+                companionMode = false
                 pendingQueue = playlist.itemUris.map { Uri.parse(it) }
                 showPlaylistScreen = false
             },

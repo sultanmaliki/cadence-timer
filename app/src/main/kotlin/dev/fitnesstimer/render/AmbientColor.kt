@@ -80,3 +80,15 @@ suspend fun sampleAudioArtwork(context: Context, uri: Uri): Bitmap? =
             retriever?.release()
         }
     }
+
+/** Dominant color of an in-memory bitmap (e.g. another app's artwork). Off the main thread. */
+suspend fun sampleColorFromBitmap(bitmap: Bitmap, fallback: Color): Color =
+    withContext(Dispatchers.Default) {
+        try {
+            val palette = Palette.from(bitmap).generate()
+            val swatch = palette.dominantSwatch ?: palette.mutedSwatch ?: palette.darkVibrantSwatch
+            swatch?.let { Color(it.rgb) } ?: fallback
+        } catch (e: Exception) {
+            fallback
+        }
+    }
