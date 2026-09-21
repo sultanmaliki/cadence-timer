@@ -26,7 +26,7 @@ real player-owned queue, app icon, and a media notification with
 previous / play-pause / next and a timer pause/resume button. Automated:
 41 JVM unit tests, lint clean; run logs in `test-logs/`.
 
-**In progress: v0.2 — companion mode, One UI-style player, background countdown alarm** (decided 2026-09-21; core and screen
+**In progress: v0.2 — companion mode, One UI-style player, background countdown alarm, beat-reactive wave** (decided 2026-09-21; core and screen
 built and checked on-device with Mi Music, not yet released — see `PLAN.md`
 section N): the app shows and controls whatever audio another app (YouTube Music,
 Spotify, ...) is playing — title, artwork, equalizer animation, plus the

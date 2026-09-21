@@ -45,6 +45,7 @@ import dev.fitnesstimer.gesture.TimerGestureActions
 import dev.fitnesstimer.gesture.timerGestures
 import dev.fitnesstimer.media.connectMediaController
 import dev.fitnesstimer.media.tryPersistReadGrant
+import dev.fitnesstimer.nowplaying.AudioLevelSource
 import dev.fitnesstimer.nowplaying.NowPlayingRepository
 import dev.fitnesstimer.nowplaying.POSITION_UNKNOWN
 import dev.fitnesstimer.nowplaying.positionNow
@@ -222,6 +223,20 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         ) {
             requestNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
         }
+    }
+
+    // Beat-reactive wave (PLAN.md N.5e): audio visualizer needs RECORD_AUDIO.
+    val prefs = remember { context.getSharedPreferences("prefs", android.content.Context.MODE_PRIVATE) }
+    var beatCardDismissed by remember { mutableStateOf(prefs.getBoolean("beat_card_dismissed", false)) }
+    val recordGranted by AudioLevelSource.permission.collectAsState()
+    val requestRecord = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        Log.d(TAG, "RECORD_AUDIO granted=$granted")
+        AudioLevelSource.refreshPermission(context)
+    }
+    val companionPlaying = companionMode && nowPlayingState.nowPlaying?.isPlaying == true
+    DisposableEffect(companionPlaying) {
+        AudioLevelSource.setWanted(companionPlaying)
+        onDispose { AudioLevelSource.setWanted(false) }
     }
 
     // Once per current item: sample ambient color, and embedded artwork
@@ -424,6 +439,18 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
                 )
             }
         }
+    }
+
+    if (companionMode && nowPlayingState.accessGranted && nowPlayingState.nowPlaying != null &&
+        !recordGranted && !beatCardDismissed
+    ) {
+        BeatAccessCard(
+            onEnable = { requestRecord.launch(android.Manifest.permission.RECORD_AUDIO) },
+            onDismiss = {
+                beatCardDismissed = true
+                prefs.edit().putBoolean("beat_card_dismissed", true).apply()
+            },
+        )
     }
 
     if (companionMode && !nowPlayingState.accessGranted && !accessCardDismissed) {

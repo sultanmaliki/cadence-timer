@@ -7,6 +7,15 @@ them here.
 
 ## Resolved
 
+- **Beat-reactive wave needs `RECORD_AUDIO` — DECIDED 2026-09-21** (user asked
+  for a real-time, One UI-style reactive wave). The only unprivileged way to
+  see another app's audio is `Visualizer` on the output mix, which Android
+  gates behind `RECORD_AUDIO`; MediaProjection playback capture was not
+  needed. Mitigation: explanation card first, capture only while visible and
+  playing, no microphone use, nothing stored or sent. Works on the test phone
+  (PLAN.md N.5e); other devices/ROMs unverified, with an honest idle
+  fallback. Play Store review of a `RECORD_AUDIO` declaration for a non-
+  recording use is an open question if Play distribution is ever chosen.
 - **Exact-alarm permission — DECIDED 2026-09-21: `USE_EXACT_ALARM`** (plus
   `SCHEDULE_EXACT_ALARM` for Android 12 only, maxSdk 32). Per the Android
   alarm docs it is auto-granted on Android 13+ with no user flow, but is

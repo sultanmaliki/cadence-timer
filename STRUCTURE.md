@@ -48,6 +48,8 @@ fitness-timer/
         │   ├── NowPlayingRepository.kt       # MediaSessionManager + per-session MediaController callbacks -> StateFlow
         │   ├── SessionSelector.kt            # pure: which session to show (playing, most recent, override)
         │   ├── PositionExtrapolator.kt       # pure: position + elapsed * speed
+        │   ├── AudioBands.kt                 # pure: FFT -> low/mid/high, adaptive gain + beat emphasis, smoothing
+        │   ├── AudioLevelSource.kt           # Visualizer(0) capture (needs RECORD_AUDIO), status ACTIVE/SILENT/FAILED
         │   └── NowPlaying.kt                 # data class (title, artist, album, artwork, position, state, actions)
         └── ui/
             └── CompanionScreen.kt            # BUILT: CompanionBody (reuses render/AudioVisual + title/artist + timer),

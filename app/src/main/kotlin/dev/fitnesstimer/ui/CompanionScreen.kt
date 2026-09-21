@@ -172,3 +172,35 @@ private fun openNotificationAccessSettings(context: android.content.Context) {
         )
     }
 }
+
+/**
+ * One-time explanation shown BEFORE the system "record audio" dialog for the
+ * beat-reactive wave. The permission name sounds alarming, so say plainly what
+ * it is used for and what is not done. Separate overlay (not inside the gesture Box).
+ */
+@Composable
+fun BeatAccessCard(onEnable: () -> Unit, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+        Column(
+            Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0xFF1C1C1C))
+                .padding(16.dp),
+        ) {
+            Text("Make the wave react to your music", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "To follow the beat, the wave uses Android's audio visualizer, which Android gates behind " +
+                    "the \"Record audio\" permission. This app does not record, save or send any audio and " +
+                    "never uses the microphone — it only measures how loud the low, mid and high sounds are, live.",
+                color = Color.White.copy(alpha = 0.75f),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = onDismiss) { Text("Not now") }
+                Button(onClick = onEnable) { Text("Enable") }
+            }
+        }
+    }
+}

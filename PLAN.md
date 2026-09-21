@@ -495,6 +495,44 @@ see N.5c), a "glass" visualizer. The equalizer is not used in this screen
 graphics layer; without it every tick re-recorded the whole screen (16 ms
 median); now 13 ms median while playing, **0 frames while paused**.
 
+### N.5e Beat-reactive wave (2026-09-21)
+
+Request: the One UI player's waveform reacts to the music in real time (lows,
+mids, highs). Reference image shows a filled, colour-graded wave along the
+progress bar with a ring thumb.
+
+**Mechanism (verified on the test phone, Android 16 / HyperOS 3.0):**
+`android.media.audiofx.Visualizer` on audio session 0 (the output mix). The
+API documentation (mirrored copies; the live reference page could not be
+fetched) says the output mix needs `MODIFY_AUDIO_SETTINGS` and that using the
+Visualizer requires `RECORD_AUDIO`; it also calls the data partial and
+low quality — enough for visualization, not recording. Measured here:
+capture size 1024, 48 kHz, 20 Hz updates, real non-zero data from **another
+app's** playback (Mi Music) with low/mid/high levels swinging live. So
+"react to any playing app" works on this device without MediaProjection.
+Not verified on other devices/ROMs: session-0 capture is known to be
+device-dependent, so `AudioLevelSource.status` reports ACTIVE / SILENT /
+FAILED and the wave falls back to a faint idle ripple (no fake beats).
+
+**Cost to the user:** the `RECORD_AUDIO` runtime permission (plus
+`MODIFY_AUDIO_SETTINGS`, normal). The app never uses the microphone and
+records/stores/sends nothing; it only measures three band levels. A
+one-time in-app card (`BeatAccessCard`) explains this before the system
+dialog. The card itself was not seen on-device (the permission was granted
+by the user through system settings before it was shown).
+
+**Design:** `nowplaying/AudioBands.kt` (pure, unit-tested): FFT -> low
+(20-250 Hz) / mid (250-2500) / high (2500-12000) RMS; `BandNormalizer`
+(adaptive gain + beat emphasis = rise above the recent average, so steady
+loudness reads calm and hits read as peaks — the first version, per-band peak
+scaling only, gave flat-topped plateaus); `BandSmoother`. `AudioLevelSource`
+runs only while companion mode is playing AND the Activity is visible AND the
+permission is granted (verified: stops on Home, restarts on return).
+`render/WaveProgress.kt`: three translucent filled bands (bass tallest) from
+art-derived analogous hues, scrolling left from the thumb so the newest audio
+is at the current position, smooth curves, tapered at both ends, ring thumb,
+flattens when paused. Frames: ~58/s while playing (median 13 ms), 0 when paused.
+
 ### N.6 Phases
 
 - **P0 — Probe (device) — DONE 2026-09-21, see N.4:** with music playing, dump `dumpsys media_session`

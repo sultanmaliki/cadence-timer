@@ -7,6 +7,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import dev.fitnesstimer.nowplaying.AudioLevelSource
 import dev.fitnesstimer.nowplaying.NowPlayingRepository
 import dev.fitnesstimer.nowplaying.positionNow
 import dev.fitnesstimer.timer.AppTimer
@@ -75,12 +76,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         AppTimer.uiVisible = false
+        AudioLevelSource.setVisible(false)
         super.onPause()
     }
 
     override fun onResume() {
         super.onResume()
         AppTimer.uiVisible = true
+        AudioLevelSource.refreshPermission(this)
+        AudioLevelSource.setVisible(true)
         CountdownAlarm.cancelFinishedNotification(this)
         // The user may have just toggled notification access in Settings.
         NowPlayingRepository.refresh()
