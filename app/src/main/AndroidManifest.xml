@@ -41,6 +41,19 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <!-- Exists only so the user can grant notification access, which
+             authorizes reading other apps' media sessions (PLAN.md N).
+             The service ignores all notifications. -->
+        <service
+            android:name=".nowplaying.NowPlayingListenerService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

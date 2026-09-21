@@ -7,6 +7,19 @@ them here.
 
 ## Resolved
 
+- **YouTube / YouTube Music "play from link" — DECIDED AGAINST, 2026-09-21.**
+  Researched three approaches (details and sources in `PLAN.md` section
+  N.1). Official IFrame embed: forbids overlays on the player and
+  background/audio-only playback — incompatible with the negative timer
+  overlay and screen-off gym use. Unofficial extraction (NewPipeExtractor,
+  GPLv3): outside YouTube's rules, fragile, forces GPLv3, no Play Store.
+  Chosen instead: **companion mode** — read and control another app's media
+  session; the source app does the playback. Policy quotes came via a
+  summarizing fetch; re-read the original pages before quoting them
+  externally.
+- **v0.2 order — decided 2026-09-21:** build companion mode first, decide the
+  fate of local playback afterwards. Nothing is removed until then.
+
 - **Code-review hardening pass — RESOLVED 2026-09-21, verified on-device.**
   The player is now the single source of truth for the queue
   (`setMediaItems` once; UI mirrors it via a listener), which gave real
@@ -54,7 +67,7 @@ them here.
   color. This is the renderer for local/online video. Third-party video
   remains out of scope regardless (see PLAN.md section B) since this
   technique only ever applies to the app's own `ExoPlayer`/`PlayerSurface`.
-  Source: `app/src/main/kotlin/dev/fitnesstimer/render/RenderSpikeScreen.kt`.
+  (The spike screen was later folded into `render/NegativeTimerText.kt`.)
   Not yet re-verified: the `Offscreen`-breaks-it and API<29-fallback control
   cases (MIUI blocked ADB's synthetic taps on the test device); low priority
   since the positive result already answers the load-bearing question.
@@ -94,6 +107,9 @@ them here.
 
 ## Needs a decision, not urgent
 
+- **Fate of local playback (video, files, playlists, ExoPlayer service).**
+  Options after companion mode exists: keep as a second source, keep audio
+  only, or remove. Deferred on purpose, 2026-09-21.
 - **minSdk.** Confirmed constraints: Media3 needs ≥23; `BlendMode.Difference`
   needs ≥29 (silent no-op fallback below that); some haptic constants need
   ≥34. No device-reach data available locally — pick a floor once that's
@@ -111,6 +127,27 @@ them here.
 
 ## Needs external verification (not answerable from docs)
 
+- **What the source apps actually publish.** Observed 2026-09-21 with Mi
+  Music (`PLAN.md` N.4): keys `ALBUM, ALBUM_ARTIST, ART, ARTIST, DURATION,
+  MEDIA_ID, NUM_TRACKS, TITLE, TRACK_NUMBER`; a 256x144 artwork bitmap under
+  `ART` and no artwork URI; full transport actions incl. skip and seek. Still
+  unobserved: YouTube Music (not playing at probe time) and any other app.
+- **Stale sessions.** The YouTube app leaves a `STOPPED` session with
+  metadata in the stack; selection must require `PLAYING` and exclude our own
+  session. Handle in `SessionSelector` with unit tests.
+- **Restricted settings for `NotificationListenerService` on HyperOS 3.0 /
+  Android 16** for our adb-installed and GitHub-APK installs. Test phone
+  state before granting: listener not enabled, `ACCESS_RESTRICTED_SETTINGS`
+  appop at default, installer=null.
+- **Listener rebind after HyperOS kills the process** — still untested (the
+  shell can't kill the app process). Also: `onListenerConnected` did not
+  fire after a `cmd notification allow_listener` grant on this phone, though
+  session access worked; the app refreshes on resume instead. Verify with a
+  real Settings-toggle grant.
+- **Android docs for `MediaSessionManager.getActiveSessions` / `MediaMetadata`
+  keys** could not be re-read on 2026-09-21 (the fetch returned navigation
+  only); the plan currently relies on earlier research and general
+  knowledge for these.
 - **Play policy on `BIND_NOTIFICATION_LISTENER_SERVICE`.** No primary Play
   policy page names it. Check directly in Play Console's "App content" flow
   before submitting, if Play distribution is chosen.

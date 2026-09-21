@@ -1,0 +1,197 @@
+package dev.fitnesstimer.nowplaying
+
+import android.content.ComponentName
+import android.content.Context
+import android.media.MediaMetadata
+import android.media.session.MediaController
+import android.media.session.MediaSessionManager
+import android.media.session.PlaybackState
+import android.util.Log
+import androidx.core.app.NotificationManagerCompat
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+
+private const val TAG = "FitnessTimer"
+
+/**
+ * Bridges other apps' media sessions into a [StateFlow]. Main-thread only
+ * (callbacks are delivered to the thread that registers them; init/refresh
+ * are called from the Activity / listener service, both on main).
+ *
+ * Requires notification access: without it getActiveSessions() throws
+ * SecurityException, which is reported as `accessGranted = false` instead of
+ * crashing. Nothing is fetched from the network; artwork is only ever a
+ * bitmap the source app put in its metadata.
+ */
+object NowPlayingRepository {
+    private val _state = MutableStateFlow(NowPlayingState())
+    val state: StateFlow<NowPlayingState> = _state
+
+    private var appContext: Context? = null
+    private var manager: MediaSessionManager? = null
+    private var component: ComponentName? = null
+    private var listening = false
+    private var preferredPackage: String? = null
+
+    private var controllers: List<MediaController> = emptyList()
+    private var current: MediaController? = null
+    private val callbacks = HashMap<MediaController, MediaController.Callback>()
+
+    private val sessionsListener = MediaSessionManager.OnActiveSessionsChangedListener { list ->
+        onSessions(list.orEmpty())
+    }
+
+    fun init(context: Context) {
+        if (appContext != null) return
+        val ctx = context.applicationContext
+        appContext = ctx
+        manager = ctx.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+        component = ComponentName(ctx, NowPlayingListenerService::class.java)
+    }
+
+    /** Re-checks access and re-reads sessions. Call on app resume and when the listener (dis)connects. */
+    fun refresh() {
+        val ctx = appContext ?: return
+        val granted = NotificationManagerCompat.getEnabledListenerPackages(ctx).contains(ctx.packageName)
+        Log.d(TAG, "[nowplaying] refresh: granted=$granted")
+        if (!granted) {
+            stopListening()
+            publish(NowPlayingState(accessGranted = false))
+            return
+        }
+        try {
+            val mgr = manager ?: return
+            val comp = component ?: return
+            val sessions = mgr.getActiveSessions(comp)
+            if (!listening) {
+                mgr.addOnActiveSessionsChangedListener(sessionsListener, comp)
+                listening = true
+            }
+            onSessions(sessions)
+        } catch (e: SecurityException) {
+            Log.w(TAG, "[nowplaying] access revoked or not yet effective", e)
+            stopListening()
+            publish(NowPlayingState(accessGranted = false))
+        }
+    }
+
+    /** User override: prefer this app's session when several are equally active. */
+    fun setPreferredPackage(pkg: String?) {
+        preferredPackage = pkg
+        recompute()
+    }
+
+    // ---- controls: forwarded to the source app; it may ignore them (actions are advisory) ----
+    fun playPause() {
+        val c = current ?: return
+        if (isPlayingState(c.playbackState?.state ?: PlaybackState.STATE_NONE)) c.transportControls.pause()
+        else c.transportControls.play()
+    }
+
+    fun skipNext() {
+        current?.transportControls?.skipToNext()
+    }
+
+    fun skipPrevious() {
+        current?.transportControls?.skipToPrevious()
+    }
+
+    fun seekTo(positionMs: Long) {
+        current?.transportControls?.seekTo(positionMs)
+    }
+
+    private fun onSessions(list: List<MediaController>) {
+        val keep = list.toSet()
+        callbacks.keys.filter { it !in keep }.forEach { detach(it) }
+        list.forEach { attach(it) }
+        controllers = list
+        recompute()
+    }
+
+    private fun attach(c: MediaController) {
+        if (callbacks.containsKey(c)) return
+        val cb = object : MediaController.Callback() {
+            override fun onPlaybackStateChanged(state: PlaybackState?) = recompute()
+            override fun onMetadataChanged(metadata: MediaMetadata?) = recompute()
+            override fun onSessionDestroyed() = refresh()
+        }
+        callbacks[c] = cb
+        c.registerCallback(cb)
+    }
+
+    private fun detach(c: MediaController) {
+        callbacks.remove(c)?.let { c.unregisterCallback(it) }
+    }
+
+    private fun stopListening() {
+        callbacks.keys.toList().forEach { detach(it) }
+        controllers = emptyList()
+        current = null
+        if (listening) {
+            manager?.removeOnActiveSessionsChangedListener(sessionsListener)
+            listening = false
+        }
+    }
+
+    private fun recompute() {
+        val ctx = appContext ?: return
+        val candidates = controllers.mapIndexed { i, c ->
+            SessionCandidate(i.toString(), c.packageName, c.playbackState?.state ?: PlaybackState.STATE_NONE)
+        }
+        val chosen = SessionSelector.select(candidates, ctx.packageName, preferredPackage)
+        current = chosen?.let { controllers[it.id.toInt()] }
+        publish(NowPlayingState(accessGranted = true, nowPlaying = current?.let { toNowPlaying(it) }))
+    }
+
+    private fun toNowPlaying(c: MediaController): NowPlaying {
+        val m = c.metadata
+        val ps = c.playbackState
+        val bitmaps = listOf(
+            MediaMetadata.METADATA_KEY_ART,
+            MediaMetadata.METADATA_KEY_ALBUM_ART,
+            MediaMetadata.METADATA_KEY_DISPLAY_ICON,
+        ).mapNotNull { m?.getBitmap(it) }
+        val hasUri = listOf(
+            MediaMetadata.METADATA_KEY_ART_URI,
+            MediaMetadata.METADATA_KEY_ALBUM_ART_URI,
+            MediaMetadata.METADATA_KEY_DISPLAY_ICON_URI,
+        ).any { !m?.getString(it).isNullOrEmpty() }
+        return NowPlaying(
+            packageName = c.packageName,
+            title = m?.getString(MediaMetadata.METADATA_KEY_TITLE)
+                ?: m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE),
+            artist = m?.getString(MediaMetadata.METADATA_KEY_ARTIST)
+                ?: m?.getString(MediaMetadata.METADATA_KEY_ALBUM_ARTIST)
+                ?: m?.getString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE),
+            album = m?.getString(MediaMetadata.METADATA_KEY_ALBUM),
+            artwork = bitmaps.maxByOrNull { it.width * it.height },
+            hasArtworkUri = hasUri,
+            durationMs = m?.getLong(MediaMetadata.METADATA_KEY_DURATION)?.takeIf { it > 0 } ?: -1L,
+            playbackState = ps?.state ?: PlaybackState.STATE_NONE,
+            positionMs = ps?.position ?: POSITION_UNKNOWN,
+            positionUpdateElapsedMs = ps?.lastPositionUpdateTime ?: 0L,
+            speed = ps?.playbackSpeed ?: 1f,
+            actions = ps?.actions ?: 0L,
+        )
+    }
+
+    private var lastLogged: String? = null
+
+    private fun publish(newState: NowPlayingState) {
+        _state.value = newState
+        // Probe logging (no personal data: key names, sizes, flags only).
+        val np = newState.nowPlaying
+        val line = when {
+            !newState.accessGranted -> "access=false"
+            np == null -> "access=true nothing-playing"
+            else -> "access=true pkg=${np.packageName} state=${np.playbackState} " +
+                "art=${np.artwork?.let { "${it.width}x${it.height}" } ?: "none"} artUri=${np.hasArtworkUri} " +
+                "dur=${np.durationMs} pos=${np.positionMs} speed=${np.speed} actions=${np.actions} " +
+                "keys=${current?.metadata?.keySet()?.sorted()}"
+        }
+        if (line != lastLogged) {
+            lastLogged = line
+            Log.d(TAG, "[nowplaying] $line")
+        }
+    }
+}

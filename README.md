@@ -12,31 +12,38 @@ backend, no accounts, no cloud, no paid services.
 ## Docs
 
 - [`PLAN.md`](PLAN.md) — the technical plan: feasibility, architecture, stack, risks. Source of truth for *why* things are built the way they are.
-- [`STRUCTURE.md`](STRUCTURE.md) — planned module/package layout.
-- [`DECISIONS.md`](DECISIONS.md) — open questions and unresolved risks to revisit as the app is built.
+- [`STRUCTURE.md`](STRUCTURE.md) — current package layout plus the planned v0.2 additions.
+- [`DECISIONS.md`](DECISIONS.md) — resolved decisions, open questions and unresolved risks.
+- [`test-logs/`](test-logs) — saved unit-test / lint / on-device run logs.
 
 ## Status
 
-Most of the app is built and working on-device: timer (stopwatch +
-countdown), gesture system, negative-text video rendering, native-aspect-
-ratio letterboxing with ambient background, audio-mode squarcle artwork +
-equalizer, playlists, app icon, and a `MediaSessionService` for a system
-notification with transport controls.
+**Released: v0.1.1** (debug-signed APK, GitHub Releases). Working on-device:
+timer (stopwatch + countdown, persisted across process death), gesture
+system, negative-text video rendering, native-aspect-ratio letterboxing with
+ambient background, audio-mode artwork + equalizer, local playlists with a
+real player-owned queue, app icon, and a media notification with
+previous / play-pause / next and a timer pause/resume button. Automated:
+41 JVM unit tests, lint clean; run logs in `test-logs/`.
 
-Playback works on-device (fixed 2026-09-21 — see `DECISIONS.md`). Still to
-verify by hand: the SAF picker → play path end to end, the notification
-controls and timer button, and whether HyperOS surfaces the media
-notification in the Island.
+**Next: v0.2 — companion mode** (decided 2026-09-21, see `PLAN.md` section
+N): the app shows and controls whatever audio another app (YouTube Music,
+Spotify, ...) is playing — title, artwork, equalizer animation, plus the
+timer — while the music plays in the source app. Playing YouTube links
+inside the app was researched and rejected: YouTube's policies forbid
+overlays on the embedded player and background/audio-only playback, and
+unofficial extraction is outside its rules. Whether local playback stays
+afterwards is an open decision (`DECISIONS.md`).
 
-Automated: 41 JVM unit tests (`./gradlew testDebugUnitTest`), lint clean; logs in `test-logs/`.
-
-The gesture state machine also still needs real hands-on testing since this
-test device blocks scripted touch input (see `DECISIONS.md`).
+Not verifiable by script on the test phone (MIUI blocks injected input):
+the gesture state machine, the file-picker/settings screens, and whether
+HyperOS shows the media notification in the Island. Those need hands-on
+testing.
 
 ## Scope (v1)
 
 Stopwatch + countdown, local media playback, read/control of other apps'
-media sessions, negative-text-over-video effect with native-aspect-ratio +
+media sessions (companion mode, v0.2), negative-text-over-video effect with native-aspect-ratio +
 ambient-color letterboxing, CD/artwork animation for audio, full gesture
 control, manual source picker.
 

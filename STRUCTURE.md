@@ -1,44 +1,65 @@
 # Project Structure
 
-Current layout, `dev.fitnesstimer` package. Update this file as the
-structure keeps changing; treat it as a living map, not a spec to satisfy
-exactly.
+Current layout, `dev.fitnesstimer` package (as of v0.1.1), plus the planned
+v0.2 additions. Living map, not a spec — update it when the structure moves.
 
 ```
 fitness-timer/
-├── README.md
-├── PLAN.md
-├── STRUCTURE.md
-├── DECISIONS.md
+├── README.md  PLAN.md  STRUCTURE.md  DECISIONS.md
+├── test-logs/                       # saved unit/lint/device test run logs
 └── app/
     ├── build.gradle.kts
-    └── src/main/
-        ├── AndroidManifest.xml
-        ├── res/values/strings.xml
-        └── kotlin/dev/fitnesstimer/
-            ├── MainActivity.kt
-            ├── gesture/
-            │   └── TimerGestures.kt      # unified pointerInput state machine (section E)
-            ├── timer/
-            │   └── TimerEngine.kt        # elapsedRealtime-based, stopwatch only so far (section F)
-            ├── render/
-            │   ├── NegativeTimerText.kt  # Difference-blend overlay + hold-to-reset ring (section H)
-            │   └── AmbientColor.kt       # one-time Palette dominant-color sample for the letterbox
-            └── ui/
-                └── MainScreen.kt         # wires timer + gestures + Media3 + render together
+    └── src/
+        ├── main/
+        │   ├── AndroidManifest.xml
+        │   └── kotlin/dev/fitnesstimer/
+        │       ├── MainActivity.kt          # entry; keep-screen-on; debug launch hooks (debuggable builds only)
+        │       ├── gesture/
+        │       │   ├── TimerGestures.kt     # unified pointerInput state machine (PLAN section E)
+        │       │   └── ScrubAccumulator.kt  # coalesces drag-scrub seeks (~10/s) + trailing flush
+        │       ├── timer/
+        │       │   ├── TimerEngine.kt       # elapsedRealtime basis, stopwatch + countdown, snapshot/restore, tick scheduling
+        │       │   └── AppTimer.kt          # process-wide singleton + SharedPreferences persistence
+        │       ├── media/
+        │       │   ├── PlaybackService.kt   # MediaSessionService: ExoPlayer, notification, timer button, controller allow-list
+        │       │   ├── ControllerConnection.kt  # suspend MediaController connect
+        │       │   └── UriGrants.kt         # safe persist/release of SAF read grants
+        │       ├── playlist/
+        │       │   ├── Playlist.kt
+        │       │   └── PlaylistRepository.kt    # atomic JSON file; corrupt file kept as .corrupt
+        │       ├── render/
+        │       │   ├── NegativeTimerText.kt # Difference-blend timer + hold ring (lambda inputs: draw-phase reads)
+        │       │   ├── AudioVisual.kt       # artwork tile (native aspect, rounded), equalizer, timer slot
+        │       │   └── AmbientColor.kt      # scaled-frame Palette sample; bounded artwork decode
+        │       └── ui/
+        │           ├── MainScreen.kt        # mirrors player state from a MediaController; wires everything
+        │           ├── MediaSourceMenu.kt  PlaylistScreen.kt  TimerModeMenu.kt
+        └── test/kotlin/dev/fitnesstimer/    # JVM unit tests (timer, scrub, playlist repo, image sizing)
+```
+
+## v0.2 — companion mode (see `PLAN.md` section N); P1 core built, UI (P2) still planned
+
+```
+        ├── nowplaying/                       # BUILT (P1)
+        │   ├── NowPlayingListenerService.kt  # NotificationListenerService, used only to authorize session access
+        │   ├── NowPlayingRepository.kt       # MediaSessionManager + per-session MediaController callbacks -> StateFlow
+        │   ├── SessionSelector.kt            # pure: which session to show (playing, most recent, override)
+        │   ├── PositionExtrapolator.kt       # pure: position + elapsed * speed
+        │   └── NowPlaying.kt                 # data class (title, artist, album, artwork, position, state, actions)
+        └── ui/
+            ├── NowPlayingScreen.kt           # reuses render/AudioVisual + title/artist text + timer
+            └── NotificationAccessScreen.kt   # onboarding + restricted-settings guidance
 ```
 
 Notes:
-- No `media/`, `data/`, `network/`, or `repository/` layers yet — local
-  playback is currently inlined in `MainScreen.kt` (a single `ExoPlayer` +
-  `ActivityResultContracts.OpenDocument()` picker, no persisted-URI
-  handling across restarts, no `MediaState` abstraction). Splitting this out
-  into `media/local/` + `media/session/` + a shared `MediaState` is still
-  open — becomes necessary once MediaSession integration (roadmap step 6)
-  starts, since that's when two source kinds need the same shape.
-- No `state/` (single `ApplicationState` holder) yet either — `MainScreen`
-  currently owns `TimerEngine`, the `ExoPlayer`, and UI state directly via
-  `remember`. Fine at this size; revisit if it gets unwieldy.
-- (`media/online/` — dropped from v1, 2026-09-20 — see `DECISIONS.md`.)
-- Package name: `dev.fitnesstimer` (decided implicitly by starting the
-  project; revisit before any real release if it matters).
+- The player (via `MediaController`) remains the single source of truth for
+  local playback. Companion mode adds a second, independent source of the
+  same shape; the fate of local playback is an open decision
+  (`DECISIONS.md`), so nothing under `media/`/`playlist/` is removed yet.
+- No `state/` holder or DI layer: `AppTimer` (object) + state mirrored from
+  the controller is enough at this size. Revisit if `MainScreen` grows
+  another source kind and gets unwieldy — companion mode is the likely
+  trigger for extracting a `MediaState` (PLAN section G).
+- `media/online/` — dropped from v1 (2026-09-20). YouTube playback from a
+  link — decided against in-app playback 2026-09-21 (PLAN section N).
+- Package name: `dev.fitnesstimer` (revisit before any wider release).

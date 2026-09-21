@@ -7,6 +7,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import dev.fitnesstimer.nowplaying.NowPlayingRepository
 import dev.fitnesstimer.timer.AppTimer
 import dev.fitnesstimer.ui.MainScreen
 
@@ -14,6 +15,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         AppTimer.init(this)
+        NowPlayingRepository.init(this)
         enableEdgeToEdge()
         // Debug-only hook: `adb shell am start -n dev.fitnesstimer/.MainActivity
         // --es debug_media_uri file:///...` loads a file without the SAF picker.
@@ -38,5 +40,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             MainScreen(debugUris = debugUris)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // The user may have just toggled notification access in Settings.
+        NowPlayingRepository.refresh()
     }
 }
