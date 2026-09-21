@@ -29,7 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -50,6 +52,7 @@ private val ARTWORK_CORNER_RADIUS = 32.dp
 fun AudioVisual(
     artwork: Bitmap?,
     ambientColor: Color,
+    isPlaying: Boolean,
     modifier: Modifier = Modifier,
     belowArtwork: @Composable () -> Unit = {},
 ) {
@@ -64,6 +67,7 @@ fun AudioVisual(
             Spacer(Modifier.height(28.dp))
             EqualizerBars(
                 color = ambientColor,
+                isPlaying = isPlaying,
                 modifier = Modifier.width(140.dp).height(40.dp),
             )
             Spacer(Modifier.height(24.dp))
@@ -114,8 +118,7 @@ private fun ArtworkTile(artwork: Bitmap?, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun EqualizerBars(color: Color, modifier: Modifier = Modifier) {
-    val transition = rememberInfiniteTransition(label = "equalizer")
+private fun EqualizerBars(color: Color, isPlaying: Boolean, modifier: Modifier = Modifier) {
     val bars = 5
     Box(modifier, contentAlignment = Alignment.Center) {
         // Soft glow: a blurred wash of the ambient color behind the bars.
@@ -128,29 +131,45 @@ private fun EqualizerBars(color: Color, modifier: Modifier = Modifier) {
                 .blur(24.dp)
         )
         Row(Modifier.fillMaxHeight(), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.Bottom) {
-            repeat(bars) { index ->
-                // Staggered duration/phase per bar so they don't move in
-                // lockstep — a plausible-looking loop, not real amplitude
-                // data (see AudioVisual's doc comment for why).
-                val duration = 500 + index * 90
-                val phase by transition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = (2 * Math.PI).toFloat(),
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(duration, easing = LinearEasing),
-                        repeatMode = RepeatMode.Restart,
-                    ),
-                    label = "bar$index",
-                )
-                val heightFraction = 0.25f + 0.75f * ((sin(phase) + 1f) / 2f)
-                Box(
-                    Modifier
-                        .width(12.dp)
-                        .fillMaxHeight(heightFraction)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(color.copy(alpha = 0.85f))
-                )
+            if (isPlaying) {
+                // Only while playing: infinite transitions redraw every frame,
+                // which is pure battery cost when the media is paused.
+                val transition = rememberInfiniteTransition(label = "equalizer")
+                repeat(bars) { index ->
+                    // Staggered duration per bar so they don't move in
+                    // lockstep — a plausible-looking loop, not real amplitude
+                    // data (see AudioVisual's doc comment for why).
+                    val phase = transition.animateFloat(
+                        initialValue = 0f,
+                        targetValue = (2 * Math.PI).toFloat(),
+                        animationSpec = infiniteRepeatable(
+                            animation = tween(500 + index * 90, easing = LinearEasing),
+                            repeatMode = RepeatMode.Restart,
+                        ),
+                        label = "bar$index",
+                    )
+                    // Read in the graphicsLayer lambda: animates in the draw
+                    // phase, with no layout/recomposition per frame.
+                    Bar(color) { 0.25f + 0.75f * ((sin(phase.value) + 1f) / 2f) }
+                }
+            } else {
+                repeat(bars) { Bar(color) { 0.25f } }
             }
         }
     }
+}
+
+@Composable
+private fun Bar(color: Color, heightFraction: () -> Float) {
+    Box(
+        Modifier
+            .width(12.dp)
+            .fillMaxHeight()
+            .graphicsLayer {
+                scaleY = heightFraction()
+                transformOrigin = TransformOrigin(0.5f, 1f)
+            }
+            .clip(RoundedCornerShape(4.dp))
+            .background(color.copy(alpha = 0.85f))
+    )
 }

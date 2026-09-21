@@ -80,6 +80,80 @@ class TimerEngineTest {
         assertEquals(listOf(true, false, true, false), seen)
     }
 
+    @Test fun stopwatchTickBoundaries() {
+        val e = engine(); e.start()
+        e.advance(0); assertEquals(1000L, e.msUntilDisplayChange())
+        e.advance(400); assertEquals(600L, e.msUntilDisplayChange())
+        e.advance(599); assertEquals(1L, e.msUntilDisplayChange())
+        e.advance(1); assertEquals(1000L, e.msUntilDisplayChange())
+    }
+
+    @Test fun countdownTickAlignsToDisplayedSecondAndFinish() {
+        val e = engine(); e.switchToCountdown(5_000); e.start()
+        assertEquals(1L, e.msUntilDisplayChange())          // shows 5s, drops to 4s next ms
+        e.advance(500)                                       // 4500 left, shows 4
+        assertEquals(501L, e.msUntilDisplayChange())
+        e.advance(4_200)                                     // 300 left: finish before next second
+        assertEquals(300L, e.msUntilDisplayChange())
+        e.advance(300)
+        assertEquals(1L, e.msUntilDisplayChange())
+    }
+
+    @Test fun tickDelayAlwaysInRange() {
+        val e = engine(); e.start()
+        for (i in 0..2500 step 37) { e.advance(37); val d = e.msUntilDisplayChange(); assertTrue(d in 1L..1000L) }
+    }
+
+    @Test fun snapshotCapturesLiveElapsed() {
+        val e = engine(); e.start(); e.advance(4_000)
+        val snap = e.snapshot(wallNowMs = 50_000)
+        assertEquals(4_000L, snap.elapsedMs); assertTrue(snap.running)
+        assertEquals(50_000L, snap.savedWallMs)
+    }
+
+    @Test fun restoreRunningCreditsTimeTheProcessWasDead() {
+        val e = engine()
+        e.restore(TimerSnapshot(TimerMode.STOPWATCH, 0, 4_000, true, savedWallMs = 100_000), wallNowMs = 130_000)
+        assertTrue(e.isRunning); assertEquals(34_000L, e.displayMs)
+        e.advance(1_000); assertEquals(35_000L, e.displayMs)
+    }
+
+    @Test fun restorePausedDoesNotCreditGap() {
+        val e = engine()
+        e.restore(TimerSnapshot(TimerMode.STOPWATCH, 0, 4_000, false, 100_000), 999_000)
+        assertFalse(e.isRunning); assertEquals(4_000L, e.displayMs)
+    }
+
+    @Test fun restoreIgnoresNegativeOrHugeGaps() {
+        val back = engine()   // wall clock went backwards
+        back.restore(TimerSnapshot(TimerMode.STOPWATCH, 0, 4_000, true, 100_000), 50_000)
+        assertFalse(back.isRunning); assertEquals(4_000L, back.displayMs)
+        val stale = engine()  // saved > 12h ago
+        stale.restore(TimerSnapshot(TimerMode.STOPWATCH, 0, 4_000, true, 0), MAX_RESTORE_GAP_MS + 1)
+        assertFalse(stale.isRunning); assertEquals(4_000L, stale.displayMs)
+    }
+
+    @Test fun restoreCountdownThatFinishedWhileDeadIsFinishedAndStopped() {
+        val e = engine()
+        e.restore(TimerSnapshot(TimerMode.COUNTDOWN, 60_000, 50_000, true, 0), wallNowMs = 20_000)
+        assertFalse(e.isRunning); assertTrue(e.isCountdownFinished); assertEquals(0L, e.displayMs)
+    }
+
+    @Test fun restoreCountdownStillRunning() {
+        val e = engine()
+        e.restore(TimerSnapshot(TimerMode.COUNTDOWN, 60_000, 10_000, true, 0), wallNowMs = 5_000)
+        assertTrue(e.isRunning); assertEquals(45_000L, e.displayMs)
+    }
+
+    @Test fun restoreIsSilentButUserActionsNotify() {
+        val e = engine(); var n = 0
+        e.onStateChanged = { n++ }
+        e.restore(TimerSnapshot(TimerMode.STOPWATCH, 0, 1_000, true, 0), 1_000)
+        assertEquals(0, n)
+        e.pause(); e.start(); e.reset(); e.switchToCountdown(5_000); e.switchToStopwatch()
+        assertEquals(5, n)
+    }
+
     @Test fun formatBasics() {
         assertEquals("00:00:00", formatElapsed(0))
         assertEquals("00:00:59", formatElapsed(59_999))

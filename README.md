@@ -28,6 +28,8 @@ verify by hand: the SAF picker → play path end to end, the notification
 controls and timer button, and whether HyperOS surfaces the media
 notification in the Island.
 
+Automated: 41 JVM unit tests (`./gradlew testDebugUnitTest`), lint clean; logs in `test-logs/`.
+
 The gesture state machine also still needs real hands-on testing since this
 test device blocks scripted touch input (see `DECISIONS.md`).
 

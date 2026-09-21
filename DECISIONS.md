@@ -7,6 +7,26 @@ them here.
 
 ## Resolved
 
+- **Code-review hardening pass — RESOLVED 2026-09-21, verified on-device.**
+  The player is now the single source of truth for the queue
+  (`setMediaItems` once; UI mirrors it via a listener), which gave real
+  next/previous/auto-advance, the notification's Next button, and survival
+  of Activity recreation. Also: missing/unreadable files skip to the next
+  item with a message; audio focus + becoming-noisy + wake lock on the
+  player; keep-screen-on; bounded artwork decode and scaled ambient-color
+  frame (no OOM on huge art); timer ticks once per displayed second and is
+  read in the draw phase; equalizer animates only while playing; scrub
+  seeks coalesced (`ScrubAccumulator`); gesture handler no longer restarts
+  on state change; timer persisted across process death
+  (`TimerSnapshot`, wall-clock gap credited up to 12h); picker grant
+  failures no longer crash and grants are released on playlist delete;
+  corrupt playlist file kept as `.corrupt` instead of overwritten;
+  PlaybackService only accepts own/system/notification controllers; debug
+  launch hooks only work in debuggable builds. Not testable here (MIUI
+  blocks injected input): the gesture state machine itself, the SAF picker
+  UI, HyperOS Island. Known remaining limits: Android caps persisted URI
+  grants per app (not surfaced to the user); countdown completion is still
+  foreground-only (no background alarm).
 - **Media wouldn't play — RESOLVED 2026-09-21, confirmed on-device.** Root
   cause was `PlaybackService.onConnect` granting *empty* command sets: the
   `super.onConnect()` result's `Player$Commands` / `SessionCommands` both

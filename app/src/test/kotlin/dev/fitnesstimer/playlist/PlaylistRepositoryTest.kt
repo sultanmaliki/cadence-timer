@@ -34,6 +34,16 @@ class PlaylistRepositoryTest {
         assertTrue(PlaylistRepository(f).load().isEmpty())
     }
 
+    @Test fun corruptFileIsPreservedAsBackupNotOverwritten() {
+        val f = File(tmp.root, "p.json"); f.writeText("{not json")
+        val r = PlaylistRepository(f)
+        assertTrue(r.load().isEmpty())
+        assertEquals("{not json", File(tmp.root, "p.json.corrupt").readText())
+        r.save(listOf(Playlist("1", "a", emptyList())))         // later save must not touch the backup
+        assertEquals("{not json", File(tmp.root, "p.json.corrupt").readText())
+        assertEquals(1, r.load().size)
+    }
+
     @Test fun saveLeavesNoTempFileBehind() {
         repo().save(listOf(Playlist("1", "a", emptyList())))
         assertEquals(listOf("p.json"), tmp.root.list()!!.toList())

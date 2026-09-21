@@ -2,6 +2,8 @@ package dev.fitnesstimer.media
 
 import android.os.Bundle
 import android.util.Log
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -35,7 +37,22 @@ class PlaybackService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
-        player = ExoPlayer.Builder(this).build()
+        AppTimer.init(this)
+        // Audio hygiene for a phone used with headphones: request audio focus
+        // (calls / other apps pause us), pause when headphones unplug instead
+        // of blasting the speaker, and hold a partial wake lock so local
+        // playback doesn't stutter with the screen off.
+        player = ExoPlayer.Builder(this)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                    .build(),
+                /* handleAudioFocus = */ true,
+            )
+            .setHandleAudioBecomingNoisy(true)
+            .setWakeMode(C.WAKE_MODE_LOCAL)
+            .build()
         player.addListener(object : androidx.media3.common.Player.Listener {
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 Log.e("FitnessTimer", "[service] onPlayerError: ${error.errorCodeName} - ${error.message}", error)

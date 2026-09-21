@@ -25,6 +25,7 @@ class TimerGestureActions(
     val onSkipPrevious: () -> Unit,
     val onTimerModePicker: () -> Unit,
     val onMediaSourcePicker: () -> Unit,
+    val onScrubEnd: () -> Unit = {},
 )
 
 private const val CORNER_ZONE_DP = 72
@@ -194,7 +195,7 @@ fun Modifier.timerGestures(actions: TimerGestureActions): Modifier = this.pointe
                     actions.onToggleMediaPlayPause()
                 }
             }
-            Mode.DRAG -> {} // already streamed via onScrub while dragging
+            Mode.DRAG -> actions.onScrubEnd() // moves were streamed via onScrub; flush any throttled tail
             Mode.UNDECIDED -> if (!resetFired) {
                 val upTimeMs = SystemClock.uptimeMillis()
                 when (zone) {

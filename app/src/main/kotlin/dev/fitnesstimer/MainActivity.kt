@@ -3,14 +3,17 @@ package dev.fitnesstimer
 import android.content.pm.ApplicationInfo
 import android.net.Uri
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import dev.fitnesstimer.timer.AppTimer
 import dev.fitnesstimer.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        AppTimer.init(this)
         enableEdgeToEdge()
         // Debug-only hook: `adb shell am start -n dev.fitnesstimer/.MainActivity
         // --es debug_media_uri file:///...` loads a file without the SAF picker.
@@ -20,11 +23,20 @@ class MainActivity : ComponentActivity() {
         // Only honoured in debuggable builds: the activity is exported, so in
         // a release build any other app could otherwise inject a URI here.
         val debuggable = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
-        val debugUri = if (debuggable) {
-            intent.getStringExtra("debug_media_uri")?.let { Uri.parse(it) }
-        } else null
+        // savedInstanceState == null: a recreation must not restart the queue.
+        val debugUris = if (debuggable && savedInstanceState == null) {
+            intent.getStringExtra("debug_media_uris")
+                ?.split(",")?.filter { it.isNotBlank() }?.map { Uri.parse(it) }
+                ?: emptyList()
+        } else emptyList()
+        // A gym timer that sleeps mid-set is useless: keep the screen on
+        // while this Activity is visible.
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        if (debuggable && intent.getBooleanExtra("debug_timer_start", false) && savedInstanceState == null) {
+            AppTimer.engine.start()
+        }
         setContent {
-            MainScreen(debugUri = debugUri)
+            MainScreen(debugUris = debugUris)
         }
     }
 }
