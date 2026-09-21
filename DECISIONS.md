@@ -5,56 +5,23 @@ or from an on-device test) before or during implementation. Update this file
 as each is resolved — move resolved items into `PLAN.md` instead of leaving
 them here.
 
-## Blocking — pick this up first
-
-- **Media still won't play, even after two confirmed-and-fixed bugs.**
-  Session: 2026-09-20/21. Symptom: pick a file in the source menu, picker
-  returns fine, but nothing plays — screen goes back to the no-media timer
-  state. Two real bugs were found and fixed along the way (both confirmed
-  via on-device logcat, not guessed):
-  1. The custom "timer toggle" notification button (`media/PlaybackService.kt`)
-     was missing a required icon resource id, which threw inside Media3's
-     legacy-compat layer during `onConnect` and made the whole session
-     get rejected — this was the "app force-closes on every launch" bug.
-     Fixed with `setIconResId(android.R.drawable.ic_lock_idle_alarm)`.
-  2. `onConnect` never explicitly granted player commands (play/seek/
-     setMediaItem/etc.), only session commands — fixed by building the
-     `ConnectionResult` from `super.onConnect(...)`'s defaults instead of
-     from scratch.
-  3. A genuine Compose bug in `MainScreen.kt`'s controller-lifecycle
-     `DisposableEffect(controller) { onDispose { controller?.release() } }`:
-     `controller` was read *inside* `onDispose`, which re-reads the latest
-     state at dispose time rather than the value this effect instance was
-     keyed on — so the very first recomposition after connecting (key
-     changing from `null` to the real controller) disposed the OLD
-     `null`-keyed effect instance, whose `onDispose` then read the
-     already-updated (non-null) `controller` and released it — confirmed
-     via logcat: `isConnected=true` right after connecting, `isConnected=
-     false` moments later when `setMediaItem`/`prepare`/`play` were called
-     (and `mediaItemCount=0` afterward, i.e. the commands were silently
-     dropped on a dead controller). Fixed by capturing `val toRelease =
-     controller` before `onDispose`.
-
-  **After all three fixes, the symptom is unchanged** — media still
-  doesn't play. This means there's at least one more distinct bug not yet
-  found. Diagnostic logging is already in place and shipped in this
-  commit (`Log.d/Log.e` tagged `"FitnessTimer"` in `MainScreen.kt`'s
-  controller-connect, tracks/playback-state/error listener, and the load
-  effect; plus a player-level error listener directly in
-  `PlaybackService.kt`) — next session, reproduce the issue and read
-  logcat for `FitnessTimer` tags first, specifically:
-  - Does `isConnected` stay `true` this time through the load effect?
-  - Does `onPlayerError` fire (service-side or controller-side listener)
-    — if so, that's almost certainly SAF read-permission failing for the
-    picked `content://` URI, or a codec/format issue MediaMetadataRetriever
-    handles fine but ExoPlayer doesn't.
-  - Does `onPlaybackStateChanged`/`onIsPlayingChanged` fire at all after
-    `play()`, or does it just sit at IDLE?
-  - `mediaItemCount` after `setMediaItem` — 0 means the command didn't
-    land on a real connected controller; 1 means it landed and the
-    problem is downstream (in ExoPlayer's actual loading/decoding).
-
 ## Resolved
+
+- **Media wouldn't play — RESOLVED 2026-09-21, confirmed on-device.** Root
+  cause was `PlaybackService.onConnect` granting *empty* command sets: the
+  `super.onConnect()` result's `Player$Commands` / `SessionCommands` both
+  hashed as empty-set values in logcat, so inheriting them denied every
+  `setMediaItem`/`play` from the controller silently (no player state
+  change on either side, no error). Fixed by granting explicitly
+  (`Player.Commands.Builder().addAllCommands()` + the public
+  `DEFAULT_SESSION_AND_LIBRARY_COMMANDS` plus the custom timer command).
+  Two other real bugs were fixed on the way: the notification button's
+  missing icon resource (crashed every launch) and a Compose
+  `DisposableEffect` closure that released the controller right after
+  connecting. Diagnosis method worth reusing: a debug launch hook
+  (`--es debug_media_uri file:///sdcard/Android/data/dev.fitnesstimer/files/x.mp4`
+  on `MainActivity`) plus `FitnessTimer`-tagged logs, since MIUI blocks
+  scripted taps and the SAF picker can't be driven from adb.
 
 - **Rendering approach — RESOLVED 2026-09-20, confirmed on-device.**
   `TextureView` (`PlayerSurface(surfaceType = SURFACE_TYPE_TEXTURE_VIEW)`)

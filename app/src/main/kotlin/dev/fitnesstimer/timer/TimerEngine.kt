@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import java.util.Locale
 
 enum class TimerMode { STOPWATCH, COUNTDOWN }
 
@@ -15,9 +16,22 @@ enum class TimerMode { STOPWATCH, COUNTDOWN }
  * PLAN.md section F) also isn't built — completion is only detected while
  * the app is in the foreground and actively ticking (see MainScreen).
  */
-class TimerEngine {
-    var isRunning by mutableStateOf(false)
-        private set
+class TimerEngine(private val clock: () -> Long = { SystemClock.elapsedRealtime() }) {
+    private var runningState by mutableStateOf(false)
+
+    val isRunning: Boolean get() = runningState
+
+    private fun setRunning(value: Boolean) {
+        if (runningState == value) return
+        runningState = value
+        onRunningChanged?.invoke(value)
+    }
+
+    /**
+     * Plain callback (not Compose snapshot state) so the playback service can
+     * refresh its notification button even when no UI is composing.
+     */
+    var onRunningChanged: ((Boolean) -> Unit)? = null
 
     var mode by mutableStateOf(TimerMode.STOPWATCH)
         private set
@@ -27,7 +41,7 @@ class TimerEngine {
         private set
 
     /** Advanced by the ticking effect in the composable while running, to drive recomposition. */
-    var nowElapsedRealtime by mutableLongStateOf(SystemClock.elapsedRealtime())
+    var nowElapsedRealtime by mutableLongStateOf(clock())
 
     private var startElapsedRealtime = 0L
     private var accumulatedMs = 0L
@@ -51,41 +65,42 @@ class TimerEngine {
 
     fun start() {
         if (isRunning || isCountdownFinished) return
-        startElapsedRealtime = SystemClock.elapsedRealtime()
+        startElapsedRealtime = clock()
         nowElapsedRealtime = startElapsedRealtime
-        isRunning = true
+        setRunning(true)
     }
 
     fun pause() {
         if (!isRunning) return
-        accumulatedMs += SystemClock.elapsedRealtime() - startElapsedRealtime
-        isRunning = false
+        accumulatedMs += clock() - startElapsedRealtime
+        setRunning(false)
     }
 
     /** Only invoked while paused — the hold-to-reset gesture is paused-only by design (section E). */
     fun reset() {
-        isRunning = false
+        setRunning(false)
         accumulatedMs = 0L
     }
 
     fun switchToStopwatch() {
-        isRunning = false
+        setRunning(false)
         accumulatedMs = 0L
         mode = TimerMode.STOPWATCH
     }
 
     fun switchToCountdown(targetMs: Long) {
-        isRunning = false
+        setRunning(false)
         accumulatedMs = 0L
         mode = TimerMode.COUNTDOWN
-        countdownTargetMs = targetMs
+        countdownTargetMs = targetMs.coerceAtLeast(0L)
     }
 }
 
 fun formatElapsed(ms: Long): String {
-    val totalSeconds = ms / 1000
+    val totalSeconds = ms.coerceAtLeast(0L) / 1000
     val h = totalSeconds / 3600
     val m = (totalSeconds % 3600) / 60
     val s = totalSeconds % 60
-    return "%02d:%02d:%02d".format(h, m, s)
+    // Locale.ROOT: the default locale would render Arabic-Indic digits on e.g. ar-SA phones.
+    return String.format(Locale.ROOT, "%02d:%02d:%02d", h, m, s)
 }

@@ -16,8 +16,8 @@ import java.io.File
  * Uses org.json (built into Android) rather than adding a serialization
  * dependency for a data shape this small.
  */
-class PlaylistRepository(context: Context) {
-    private val file = File(context.filesDir, "playlists.json")
+class PlaylistRepository(private val file: File) {
+    constructor(context: Context) : this(File(context.filesDir, "playlists.json"))
 
     fun load(): List<Playlist> {
         if (!file.exists()) return emptyList()
@@ -46,6 +46,13 @@ class PlaylistRepository(context: Context) {
             obj.put("itemUris", JSONArray(playlist.itemUris))
             array.put(obj)
         }
-        file.writeText(array.toString())
+        // Write-then-rename so a crash/kill mid-write can't leave a truncated
+        // file (load() would treat that as "no playlists" and lose them all).
+        val tmp = File(file.parentFile, file.name + ".tmp")
+        tmp.writeText(array.toString())
+        if (!tmp.renameTo(file)) {
+            file.delete()
+            check(tmp.renameTo(file)) { "could not replace ${file.name}" }
+        }
     }
 }

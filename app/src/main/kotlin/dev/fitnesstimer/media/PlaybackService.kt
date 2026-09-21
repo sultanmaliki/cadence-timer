@@ -2,6 +2,7 @@ package dev.fitnesstimer.media
 
 import android.os.Bundle
 import android.util.Log
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
@@ -45,11 +46,15 @@ class PlaybackService : MediaSessionService() {
         mediaSession = MediaSession.Builder(this, player)
             .setCallback(SessionCallback())
             .build()
+        AppTimer.engine.onRunningChanged = {
+            mediaSession.setCustomLayout(listOf(timerCommandButton()))
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession = mediaSession
 
     override fun onDestroy() {
+        AppTimer.engine.onRunningChanged = null
         mediaSession.run {
             player.release()
             release()
@@ -77,26 +82,20 @@ class PlaybackService : MediaSessionService() {
             session: MediaSession,
             controller: MediaSession.ControllerInfo,
         ): MediaSession.ConnectionResult {
-            // Start from the base implementation's result instead of
-            // building one from scratch: it grants the normal set of
-            // player commands (play, pause, seek, setMediaItem, ...) that
-            // every controller needs. The previous version only ever set
-            // *session* commands and never touched player commands at all,
-            // which meant nothing here explicitly granted them — this is
-            // what made "play anything" silently do nothing (no crash,
-            // the controller's commands were just being denied).
-            val defaultResult = super.onConnect(session, controller)
-            Log.d(
-                "FitnessTimer",
-                "onConnect from ${controller.packageName}: defaultPlayerCommands=${defaultResult.availablePlayerCommands} " +
-                    "defaultSessionCommands=${defaultResult.availableSessionCommands}",
-            )
-            val sessionCommands = defaultResult.availableSessionCommands.buildUpon()
+            // Grant everything explicitly. super.onConnect()'s result was
+            // logged on-device and both its command sets hashed as EMPTY
+            // (Player$Commands@0, SessionCommands@1f = empty-set hashes), so
+            // inheriting from it granted nothing and every setMediaItem/play
+            // from the controller was silently denied (no player state
+            // change ever fired on either side).
+            val sessionCommands = MediaSession.ConnectionResult.DEFAULT_SESSION_AND_LIBRARY_COMMANDS
+                .buildUpon()
                 .add(SessionCommand(CMD_TIMER_TOGGLE, Bundle.EMPTY))
                 .build()
+            val playerCommands = Player.Commands.Builder().addAllCommands().build()
             return MediaSession.ConnectionResult.AcceptedResultBuilder(session, controller)
                 .setAvailableSessionCommands(sessionCommands)
-                .setAvailablePlayerCommands(defaultResult.availablePlayerCommands)
+                .setAvailablePlayerCommands(playerCommands)
                 .setCustomLayout(listOf(timerCommandButton()))
                 .build()
         }
