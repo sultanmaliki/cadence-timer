@@ -103,8 +103,9 @@ fun Modifier.timerGestures(actions: TimerGestureActions): Modifier = this.pointe
 
         var mode = Mode.UNDECIDED
         var lastX = down.position.x
-        var twoFingerStartX = down.position.x
+        val twoFinger = TwoFingerTracker()
         var resetFired = false
+        var movedPastSlop = false // a finger that travelled is not a tap, even if it was too quick to become a drag
 
         // A plain concurrent coroutine (coroutineScope { launch { ... } })
         // isn't legal here — AwaitPointerEventScope is a restricted suspend
@@ -150,8 +151,6 @@ fun Modifier.timerGestures(actions: TimerGestureActions): Modifier = this.pointe
             if (mode == Mode.UNDECIDED && pressed.size >= 2 && !resetFired) {
                 mode = Mode.TWO_FINGER
                 actions.onHoldProgress(0f)
-                twoFingerStartX = pressed[0].position.x
-                lastX = twoFingerStartX
             }
 
             when (mode) {
@@ -161,10 +160,13 @@ fun Modifier.timerGestures(actions: TimerGestureActions): Modifier = this.pointe
                         val dx = primary.position.x - down.position.x
                         val dy = primary.position.y - down.position.y
                         val pastGrace = SystemClock.uptimeMillis() - downTimeMs >= TWO_FINGER_GRACE_MS
-                        if ((abs(dx) > touchSlopPx || abs(dy) > touchSlopPx) && pastGrace) {
-                            mode = Mode.DRAG
-                            actions.onHoldProgress(0f)
-                            lastX = primary.position.x
+                        if (abs(dx) > touchSlopPx || abs(dy) > touchSlopPx) {
+                            movedPastSlop = true
+                            if (pastGrace) {
+                                mode = Mode.DRAG
+                                actions.onHoldProgress(0f)
+                                lastX = primary.position.x
+                            }
                         }
                     }
                 }
@@ -178,8 +180,8 @@ fun Modifier.timerGestures(actions: TimerGestureActions): Modifier = this.pointe
                     }
                 }
                 Mode.TWO_FINGER -> {
-                    val first = pressed.firstOrNull()
-                    if (first != null) lastX = first.position.x
+                    // Tracked per pointer ID, frozen when a finger lifts (see TwoFingerTracker).
+                    for (c in event.changes) twoFinger.update(c.id.value, c.position.x, c.position.y, c.pressed)
                 }
             }
 
@@ -187,16 +189,13 @@ fun Modifier.timerGestures(actions: TimerGestureActions): Modifier = this.pointe
         }
 
         when (mode) {
-            Mode.TWO_FINGER -> {
-                val totalDx = lastX - twoFingerStartX
-                if (abs(totalDx) > swipeMinPx) {
-                    if (totalDx > 0) actions.onSkipPrevious() else actions.onSkipNext()
-                } else {
-                    actions.onToggleMediaPlayPause()
-                }
+            Mode.TWO_FINGER -> when (twoFinger.result(swipeMinPx)) {
+                TwoFingerResult.PREVIOUS -> actions.onSkipPrevious()
+                TwoFingerResult.NEXT -> actions.onSkipNext()
+                TwoFingerResult.TAP -> actions.onToggleMediaPlayPause()
             }
             Mode.DRAG -> actions.onScrubEnd() // moves were streamed via onScrub; flush any throttled tail
-            Mode.UNDECIDED -> if (!resetFired) {
+            Mode.UNDECIDED -> if (!resetFired && !movedPastSlop) {
                 val upTimeMs = SystemClock.uptimeMillis()
                 when (zone) {
                     -1, 1 -> {

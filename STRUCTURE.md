@@ -18,7 +18,8 @@ fitness-timer/
         │       ├── MainActivity.kt          # entry; keep-screen-on; debug launch hooks (debuggable builds only)
         │       ├── gesture/
         │       │   ├── TimerGestures.kt     # unified pointerInput state machine (PLAN section E)
-        │       │   └── ScrubAccumulator.kt  # coalesces drag-scrub seeks (~10/s) + trailing flush
+        │       │   ├── ScrubAccumulator.kt  # coalesces drag-scrub seeks (~10/s) + trailing flush
+        │       │   └── TwoFingerTracker.kt  # pure: per-pointer-id tap vs swipe decision (fixes lift-order false swipes)
         │       ├── timer/
         │       │   ├── CountdownAlarm.kt    # pure alarmDelayMs + AlarmManager scheduling + finished notification
         │       │   ├── CountdownAlarmReceivers.kt  # alarm + BOOT_COMPLETED receivers
@@ -51,6 +52,7 @@ fitness-timer/
         │   ├── NowPlayingRepository.kt       # MediaSessionManager + per-session MediaController callbacks -> StateFlow
         │   ├── SessionSelector.kt            # pure: which session to show (playing, most recent, override)
         │   ├── PositionExtrapolator.kt       # pure: position + elapsed * speed
+        │   ├── NullGrace.kt                  # pure: hold the last value through ~150 ms between-track gaps
         │   ├── AudioBands.kt                 # pure: FFT -> low/mid/high, adaptive gain + beat emphasis, smoothing
         │   ├── AudioLevelSource.kt           # Visualizer(0) capture (needs RECORD_AUDIO), status ACTIVE/SILENT/FAILED
         │   └── NowPlaying.kt                 # data class (title, artist, album, artwork, position, state, actions)

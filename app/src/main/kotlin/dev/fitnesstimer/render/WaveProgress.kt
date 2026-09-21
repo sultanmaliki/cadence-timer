@@ -13,7 +13,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -46,7 +45,10 @@ fun formatClock(totalSeconds: Long): String {
     else String.format(java.util.Locale.ROOT, "%d:%02d", m, s)
 }
 
-private const val COLUMNS = 60          // history length: ~2 s at the 33 ms tick
+// History must reach across the whole bar: at 4 dp per column, 160 columns = 640 dp, wider than any
+// phone in portrait. With only 60 (240 dp) the wave stopped short of the left end once the thumb had
+// moved more than 240 dp along the bar (about 70% into a song).
+private const val COLUMNS = 160
 private const val TICK_MS = 33L
 
 /**
@@ -71,14 +73,16 @@ fun WaveProgress(np: NowPlaying, accent: Color, modifier: Modifier = Modifier) {
     var now by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
     val history = remember { Array(BAND_COUNT) { FloatArray(COLUMNS) } }
     val shown = remember { FloatArray(BAND_COUNT) } // per-tick smoothing between capture callbacks
-    val audioStatus by AudioLevelSource.status.collectAsState()
-    val live = audioStatus == AudioLevelSource.Status.ACTIVE
-
     LaunchedEffect(np.isPlaying, np.positionUpdateElapsedMs, np.positionMs) {
         now = SystemClock.elapsedRealtime()
         while (np.isPlaying) {
             delay(TICK_MS)
             val t = SystemClock.elapsedRealtime()
+            // Read the status HERE, every tick. It used to be captured once when this effect
+            // started; if the audio capture came up a moment later (it restarts at each track
+            // change) the loop stayed stuck in "no audio" mode and the wave shrank to a faint
+            // ripple until an unrelated playback update restarted the effect.
+            val live = AudioLevelSource.status.value == AudioLevelSource.Status.ACTIVE
             val source = AudioLevelSource.levels
             for (b in 0 until BAND_COUNT) {
                 val arr = history[b]
@@ -105,7 +109,7 @@ fun WaveProgress(np: NowPlaying, accent: Color, modifier: Modifier = Modifier) {
     val midColor = hslToColor((hue + 50f) % 360f, s, 0.6f)
     val highColor = hslToColor((hue + 310f) % 360f, s, 0.6f)
     val bandColors = listOf(lowColor, midColor, highColor)
-    val bandScale = floatArrayOf(1.0f, 0.7f, 0.5f) // bass tallest, highs lowest, like the reference
+    val bandScale = floatArrayOf(1.0f, 0.8f, 0.62f) // bass tallest, highs lowest, like the reference
 
     Column(modifier) {
         // graphicsLayer: without its own layer every tick re-records the draw ops of

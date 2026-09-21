@@ -102,6 +102,10 @@ rest.
 ./gradlew lintDebug
 ```
 
+There are also 18 on-device gesture tests that drive the real gesture engine on a phone. See
+[`CONTRIBUTING.md`](CONTRIBUTING.md) for how to run them safely (Gradle's own connected-test task
+uninstalls the app afterwards).
+
 The stack is Kotlin, Jetpack Compose and Media3, with a small hand-written gesture engine. The
 package id is still `dev.fitnesstimer` (the app was called *Fitness Timer* before it was renamed),
 so that upgrades keep working.

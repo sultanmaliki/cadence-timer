@@ -73,9 +73,10 @@ fun peakMagnitude(fft: ByteArray): Float {
  *    peak alone gave flat-topped plateaus (measured on device).
  */
 class BandNormalizer(
-    private val decay: Float = 0.99f,
+    private val decay: Float = 0.985f,
     private val minPeak: Float = 6f,
     private val avgAlpha: Float = 0.06f,
+    private val floor: Float = 0.16f,
 ) {
     private val peak = FloatArray(BAND_COUNT) { minPeak }
     private val avg = FloatArray(BAND_COUNT)
@@ -87,7 +88,10 @@ class BandNormalizer(
             val x = (raw[i] / peak[i]).coerceIn(0f, 1f)
             val beat = max(0f, x - avg[i])
             avg[i] += (x - avg[i]) * avgAlpha
-            out[i] = (0.5f * x.pow(2.2f) + 1.6f * beat).coerceIn(0f, 1f)
+            // A floor keeps quiet/steady passages visibly alive (the wave used to shrink to
+            // nothing mid-song); the steady level and the beat rise ride on top of it.
+            val mix = 0.45f * x.pow(1.3f) + 1.6f * beat
+            out[i] = (floor + (1f - floor) * mix).coerceIn(0f, 1f)
         }
         return out
     }

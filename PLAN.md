@@ -558,6 +558,57 @@ flattens when paused. Frames: ~58/s while playing (median 13 ms), 0 when paused.
   enough. Not verified on a real barred cover on-device (the track playing during testing had
   full-bleed art, where the trim correctly did nothing).
 
+### N.5g Bugs found by the owner and by soak testing, fixed (2026-09-21)
+
+Reported by the owner after using v0.2, each reproduced or explained from the code and covered by a
+regression test where the logic is pure:
+
+1. **Wave started "forward from the beginning" after ~2:30.** The scrolling history held only 60
+   columns (~240 dp, about 2 s of audio); once the thumb was further along the bar than that, the left
+   part of the bar had no wave. History is now 160 columns (wider than any portrait phone). Verified:
+   over 31 consecutive shots the thumb moved x=432 to x=1152 while the wave's left edge stayed at the
+   start of the bar (x~100, the end taper).
+2. **Wave shrank or vanished mid-song.** Two causes. (a) The level was almost entirely "rise above
+   the recent average", so a quiet steady passage after a loud one collapsed to ~0, and the mid/high
+   bands were further scaled to 70%/50%: levels now have a 0.16 floor, the gain recovers ~2x faster
+   (peak decay 0.985) and band scales are 1.0/0.8/0.62 (regression tests: a quiet passage after a loud
+   one stays >= the floor). (b) **A stale-capture bug:** the wave's update loop decided once, at
+   start, whether live audio existed; the capture restarts at each track change and comes up a moment
+   later, leaving the loop stuck in the faint "no audio" ripple until an unrelated playback update.
+   The status is now read every tick. Reproduced on-device (identical faint shape across shots while
+   levels were healthy) and re-verified after forced track changes.
+3. **A tiny finger movement changed the song.** The two-finger swipe read "the first pointer currently
+   down"; if one finger lifted slightly before the other, the survivor became "first", its x jumped a
+   whole finger-gap, and a tap read as a swipe. Now `TwoFingerTracker` follows each pointer by id,
+   freezes a finger's displacement when it lifts, averages them, and requires the swipe to be mostly
+   horizontal. Unit-tested including the lift-order scenarios. Not verifiable by script on the test phone
+   (touch injection is blocked): needs the owner's hands.
+
+**On-device gesture tests (new).** Shell touch injection is blocked on this phone (MIUI), but
+Compose's own test framework (`createComposeRule` + `performTouchInput`) dispatches pointer events
+straight into the app and works. `app/src/androidTest/.../TimerGesturesInstrumentedTest.kt` runs the
+REAL gesture state machine on the phone: 18 tests covering two-finger tap/swipe (both lift orders,
+jitter, three fingers), single/double taps in every zone, corner menus, drag-scrub, a quick flick,
+and hold-to-reset in real time (early release and a second finger cancelling it). Proof they detect
+the bug: with the pre-fix gesture code, 4 of the first 10 fail (lift-order, jitter, plain two-finger
+tap, quick flick); with the fix all pass. Running them: build with
+`assembleDebug assembleDebugAndroidTest`, `adb install -r -t` both APKs and
+`adb shell am instrument -w dev.fitnesstimer.test/androidx.test.runner.AndroidJUnitRunner`.
+Do NOT use `connectedDebugAndroidTest` on a phone with real data: Gradle uninstalls the app
+afterwards. Test-harness gotchas learned: a `performTouchInput` block delivers its events together
+when it ends (put real pauses BETWEEN blocks), and the engine measures holds in real time but wakes
+on virtual-clock timeouts (also call `mainClock.advanceTimeBy`).
+
+A second gesture bug found this way: a very fast single-finger flick (finished inside the 100 ms
+grace before a drag begins) fell through as a "tap" and toggled the timer. A finger that travelled
+past touch slop is now never a tap (`movedPastSlop`).
+
+Found by soak testing: at every track boundary Mi Music reports "no session" for ~150 ms, which
+flashed "Nothing playing" and restarted the audio capture. `NullGrace` now holds the last value for
+1.5 s (unit-tested) and the capture is stopped only after 2.5 s of not-playing. Result: 0 flashes
+across repeated forced track changes. The bar-trim was also seen working on a real barred cover
+(256x144 -> 146x144).
+
 ### N.6 Phases
 
 - **P0 — Probe (device) — DONE 2026-09-21, see N.4:** with music playing, dump `dumpsys media_session`
