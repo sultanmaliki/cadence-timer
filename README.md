@@ -18,27 +18,31 @@ backend, no accounts, no cloud, no paid services.
 
 ## Status
 
-**Released: v0.1.1** (debug-signed APK, GitHub Releases). Working on-device:
-timer (stopwatch + countdown, persisted across process death), gesture
-system, negative-text video rendering, native-aspect-ratio letterboxing with
-ambient background, audio-mode artwork + equalizer, local playlists with a
-real player-owned queue, app icon, and a media notification with
-previous / play-pause / next and a timer pause/resume button. Automated:
-41 JVM unit tests, lint clean; run logs in `test-logs/`.
+**Released: v0.2** (GitHub Releases; signed with the debug key, not debuggable).
 
-**In progress: v0.2 — companion mode, One UI-style player, background countdown alarm, beat-reactive wave** (decided 2026-09-21; core and screen
-built and checked on-device with Mi Music, not yet released — see `PLAN.md`
-section N): the app shows and controls whatever audio another app (YouTube Music,
-Spotify, ...) is playing — title, artwork, equalizer animation, plus the
-timer — while the music plays in the source app. Playing YouTube links
-inside the app was researched and rejected: YouTube's policies forbid
-overlays on the embedded player and background/audio-only playback, and
-unofficial extraction is outside its rules. Whether local playback stays
-afterwards is an open decision (`DECISIONS.md`).
+- **Companion mode:** shows and controls whatever another app (Mi Music, and
+  in principle any app with a media session) is playing — title, artist,
+  artwork, progress — in a One UI-style player, with the timer underneath.
+  Gestures drive the source app (confirmed working by hand). Needs
+  notification access; reads media sessions only.
+- **Beat-reactive wave:** the progress wave follows the music's low/mid/high in
+  real time (Android's audio visualizer; needs the Record audio permission,
+  never uses the microphone, stores or sends nothing).
+- **Background countdown alarm:** exact alarm + notification, works with the
+  screen off (the notification/sound itself still needs a hand test).
+- Still there: stopwatch + countdown (persisted across process death),
+  gesture system, local files and playlists with a real player queue,
+  negative-text video rendering, audio mode, media notification.
 
-Not verifiable by script on the test phone (MIUI blocks injected input):
-the gesture state machine, the file-picker/settings screens, and whether
-HyperOS shows the media notification in the Island. Those need hands-on
+Playing YouTube links inside the app was researched and rejected (YouTube's
+policies forbid overlays and background/audio-only playback on embeds;
+unofficial extraction is outside its rules) — see `PLAN.md` section N. The
+fate of local playback is an open decision (`DECISIONS.md`).
+
+Automated: 93 JVM unit tests, lint clean; run logs in `test-logs/`. Not
+verifiable by script on the test phone (MIUI blocks injected input and
+permission grants): the countdown notification/sound, the real Settings
+toggle for notification access, and HyperOS Island behaviour need hands-on
 testing.
 
 ## Scope (v1)

@@ -447,8 +447,11 @@ Verified on the test phone with Mi Music:
   lightened variant of the ambient hue.
 - Layout: artwork tile is sized to the image itself (no dead space).
 
-Not verified (needs hands): the gestures themselves (touch injection is
-blocked), the real Settings toggle and any restricted-settings screen, the
+**Hands-on check by the user, 2026-09-21:** the gestures work in companion
+mode — song change, play/pause and the other gestures all act on the source
+app. (Detail of which were tried was not itemized.)
+
+Not verified (needs hands): the real Settings toggle and any restricted-settings screen, the
 "Now playing" menu entry and file/playlist switching, other source apps
 (YouTube Music not observed), a source app that gives no artwork or no
 position/duration. Mi Music's artwork has dark side bars baked into the 16:9
