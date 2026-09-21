@@ -13,6 +13,12 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- ExoPlayer setWakeMode(WAKE_MODE_LOCAL): keeps CPU awake for local playback with screen off. -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Countdown alarm (PLAN.md F). USE_EXACT_ALARM is auto-granted on Android 13+ and is
+         Play-restricted to genuine alarm/timer apps; SCHEDULE_EXACT_ALARM covers Android 12.
+         Alarms don't survive reboot, so the boot receiver reschedules. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:allowBackup="false"
@@ -54,6 +60,13 @@
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+
+        <receiver android:name=".timer.CountdownAlarmReceiver" android:exported="false" />
+        <receiver android:name=".timer.BootReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

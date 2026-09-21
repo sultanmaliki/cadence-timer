@@ -7,6 +7,14 @@ them here.
 
 ## Resolved
 
+- **Exact-alarm permission — DECIDED 2026-09-21: `USE_EXACT_ALARM`** (plus
+  `SCHEDULE_EXACT_ALARM` for Android 12 only, maxSdk 32). Per the Android
+  alarm docs it is auto-granted on Android 13+ with no user flow, but is
+  subject to Google Play's limited-use-cases policy. A countdown timer
+  should qualify as a genuine timer/alarm use, but that is a **Play Console
+  question to confirm before any Play submission**; GitHub/F-Droid
+  distribution is unaffected. `SCHEDULE_EXACT_ALARM` alone would need a
+  per-user grant flow on Android 13+.
 - **YouTube / YouTube Music "play from link" — DECIDED AGAINST, 2026-09-21.**
   Researched three approaches (details and sources in `PLAN.md` section
   N.1). Official IFrame embed: forbids overlays on the player and
@@ -129,6 +137,10 @@ them here.
 
 ## Needs external verification (not answerable from docs)
 
+- **Countdown-finished notification + sound** — needs a hand test: pick a
+  countdown, tap Allow on the notification permission dialog, go home, wait.
+  Cannot be granted from the shell on this MIUI phone. Also untested:
+  reboot rescheduling and long Doze.
 - **What the source apps actually publish.** Observed 2026-09-21 with Mi
   Music (`PLAN.md` N.4): keys `ALBUM, ALBUM_ARTIST, ART, ARTIST, DURATION,
   MEDIA_ID, NUM_TRACKS, TITLE, TRACK_NUMBER`; a 256x144 artwork bitmap under

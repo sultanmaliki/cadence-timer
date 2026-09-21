@@ -26,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -51,7 +52,8 @@ import dev.fitnesstimer.render.AudioVisual
 import dev.fitnesstimer.render.NegativeTimerText
 import dev.fitnesstimer.render.sampleAmbientColor
 import dev.fitnesstimer.render.sampleAudioArtwork
-import dev.fitnesstimer.render.sampleColorFromBitmap
+import dev.fitnesstimer.render.DEFAULT_ART_COLORS
+import dev.fitnesstimer.render.sampleArtColors
 import dev.fitnesstimer.timer.AppTimer
 import dev.fitnesstimer.timer.formatElapsed
 import kotlinx.coroutines.delay
@@ -132,7 +134,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
     var companionMode by rememberSaveable { mutableStateOf(debugUris.isEmpty()) }
     var accessCardDismissed by rememberSaveable { mutableStateOf(false) }
     val nowPlayingState by NowPlayingRepository.state.collectAsState()
-    var companionColor by remember { mutableStateOf(DEFAULT_AMBIENT) }
+    var companionColors by remember { mutableStateOf(DEFAULT_ART_COLORS) }
     val liveCompanion by rememberUpdatedState(companionMode)
     val liveNowPlaying by rememberUpdatedState(nowPlayingState.nowPlaying)
 
@@ -208,6 +210,20 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         }
     }
 
+    // Android 13+: the countdown-finished notification needs the runtime permission.
+    // Asked when the user picks a countdown, the first moment it matters.
+    val requestNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        Log.d(TAG, "POST_NOTIFICATIONS granted=$granted")
+    }
+    fun ensureNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) !=
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            requestNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
     // Once per current item: sample ambient color, and embedded artwork
     // (used only in audio mode).
     LaunchedEffect(currentUri) {
@@ -221,7 +237,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
     // source app's artwork (the repository keeps the bitmap instance stable).
     val companionArtwork = nowPlayingState.nowPlaying?.artwork
     LaunchedEffect(companionArtwork) {
-        companionColor = if (companionArtwork != null) sampleColorFromBitmap(companionArtwork, DEFAULT_AMBIENT) else DEFAULT_AMBIENT
+        companionColors = if (companionArtwork != null) sampleArtColors(companionArtwork) else DEFAULT_ART_COLORS
     }
 
     // Drives recomposition of the timer text while running, and detects
@@ -347,14 +363,17 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(if (companionMode) companionColor else if (hasMedia) ambientColor else DEFAULT_AMBIENT)
+            .then(
+                if (companionMode) Modifier.background(Brush.verticalGradient(listOf(companionColors.top, companionColors.bottom)))
+                else Modifier.background(if (hasMedia) ambientColor else DEFAULT_AMBIENT)
+            )
             .timerGestures(actions)
     ) {
         when {
             companionMode -> CompanionBody(
                 nowPlaying = nowPlayingState.nowPlaying,
                 accessGranted = nowPlayingState.accessGranted,
-                ambientColor = companionColor,
+                colors = companionColors,
                 timerText = { formatElapsed(timer.displayMs) },
                 holdProgress = { holdProgress },
             )
@@ -459,6 +478,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
             onChooseCountdown = { targetMs ->
                 showTimerModeMenu = false
                 timer.switchToCountdown(targetMs)
+                ensureNotificationPermission()
             },
         )
     }

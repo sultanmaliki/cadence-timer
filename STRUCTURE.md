@@ -18,6 +18,8 @@ fitness-timer/
         │       │   ├── TimerGestures.kt     # unified pointerInput state machine (PLAN section E)
         │       │   └── ScrubAccumulator.kt  # coalesces drag-scrub seeks (~10/s) + trailing flush
         │       ├── timer/
+        │       │   ├── CountdownAlarm.kt    # pure alarmDelayMs + AlarmManager scheduling + finished notification
+        │       │   ├── CountdownAlarmReceivers.kt  # alarm + BOOT_COMPLETED receivers
         │       │   ├── TimerEngine.kt       # elapsedRealtime basis, stopwatch + countdown, snapshot/restore, tick scheduling
         │       │   └── AppTimer.kt          # process-wide singleton + SharedPreferences persistence
         │       ├── media/
@@ -30,7 +32,8 @@ fitness-timer/
         │       ├── render/
         │       │   ├── NegativeTimerText.kt # Difference-blend timer + hold ring (lambda inputs: draw-phase reads)
         │       │   ├── AudioVisual.kt       # artwork tile (native aspect, rounded), equalizer, timer slot
-        │       │   └── AmbientColor.kt      # scaled-frame Palette sample; bounded artwork decode
+        │       │   ├── WaveProgress.kt      # One UI-style waveform progress (companion mode)
+        │       │   └── AmbientColor.kt      # scaled-frame Palette sample; bounded artwork decode; ArtColors (HSL, pure)
         │       └── ui/
         │           ├── MainScreen.kt        # mirrors player state from a MediaController; wires everything
         │           ├── MediaSourceMenu.kt  PlaylistScreen.kt  TimerModeMenu.kt

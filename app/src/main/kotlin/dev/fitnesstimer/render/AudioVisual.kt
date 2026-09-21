@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -88,7 +89,12 @@ fun AudioVisual(
  * square tile, since there's no real aspect ratio to preserve.
  */
 @Composable
-private fun ArtworkTile(artwork: Bitmap?, maxWidth: Dp, maxHeight: Dp) {
+internal fun ArtworkTile(
+    artwork: Bitmap?,
+    maxWidth: Dp,
+    maxHeight: Dp,
+    overlay: @Composable BoxScope.() -> Unit = {},
+) {
     if (artwork != null && artwork.width > 0 && artwork.height > 0) {
         val bitmapAspect = artwork.width.toFloat() / artwork.height.toFloat()
         val boxAspect = maxWidth / maxHeight
@@ -101,12 +107,15 @@ private fun ArtworkTile(artwork: Bitmap?, maxWidth: Dp, maxHeight: Dp) {
             h = maxHeight
             w = maxHeight * bitmapAspect
         }
-        Image(
-            bitmap = artwork.asImageBitmap(),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.size(w, h).clip(RoundedCornerShape(ARTWORK_CORNER_RADIUS)),
-        )
+        Box(Modifier.size(w, h).clip(RoundedCornerShape(ARTWORK_CORNER_RADIUS))) {
+            Image(
+                bitmap = artwork.asImageBitmap(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+            )
+            overlay()
+        }
     } else {
         val side = if (maxWidth < maxHeight) maxWidth else maxHeight
         Box(
@@ -114,7 +123,7 @@ private fun ArtworkTile(artwork: Bitmap?, maxWidth: Dp, maxHeight: Dp) {
                 .size(side)
                 .clip(RoundedCornerShape(ARTWORK_CORNER_RADIUS))
                 .background(Color.White.copy(alpha = 0.08f))
-        )
+        ) { overlay() }
     }
 }
 

@@ -454,6 +454,47 @@ blocked), the real Settings toggle and any restricted-settings screen, the
 position/duration. Mi Music's artwork has dark side bars baked into the 16:9
 bitmap; trimming uniform borders is a possible polish item.
 
+### N.5d Implementation status (P3 + One UI theme, 2026-09-21)
+
+**P3 — countdown alarm.** `timer/CountdownAlarm.kt` (pure `alarmDelayMs`,
+scheduling, notification), `CountdownAlarmReceivers.kt` (alarm + boot),
+`AppTimer` re-syncs the alarm on every timer state change and after restore.
+Exact `setExactAndAllowWhileIdle` on `ELAPSED_REALTIME_WAKEUP`; falls back to
+the inexact variant if exact alarms aren't allowed. Permissions:
+`USE_EXACT_ALARM` (auto-granted on Android 13+, Play-restricted to genuine
+alarm/timer apps), `SCHEDULE_EXACT_ALARM` (maxSdk 32), `RECEIVE_BOOT_COMPLETED`;
+`POST_NOTIFICATIONS` is requested when the user picks a countdown.
+Documented (Android alarm docs, fetched 2026-09-21): alarms are cancelled on
+shutdown (boot receiver reschedules) and on force-stop.
+The receiver settles the countdown from the real clock (no UI loop needed),
+posts a high-importance alarm-sound notification unless the screen is up
+(`uiVisible`), and a countdown that finished while the process was dead is
+detected on restore (`restore()` returns it; boot receiver notifies).
+Verified on the test phone: alarm scheduled as exact (`exactAllowReason=
+policy_permission`), fired on time with the app in the background, cold/warm
+paths log correctly, foreground skips the notification, denied notification
+permission is handled without a crash. **Not verified:** the notification and
+its sound actually appearing — MIUI blocks granting POST_NOTIFICATIONS from
+the shell, so it needs a hand tap on the runtime dialog. Also untested:
+reboot rescheduling, Doze delivery with the screen off for a long time,
+the sound over headphones.
+
+**One UI-style theme (companion mode).** Design taken from press descriptions
+of One UI 9's media player (the reference video itself could not be viewed):
+colors driven by the album art, colorful waveform progress, title/artist over
+the artwork, blur, smooth transitions. Implemented: `render/WaveProgress.kt`
+(animated sine wave up to the position, dim flat remainder, round thumb, time
+labels; wave flattens smoothly when paused), title/artist overlaid on the
+artwork with a scrim, tinted gradient background + accent derived from the
+artwork (`deriveArtColors`, HSL-based, pure and unit-tested; greys stay
+neutral). Not done, deliberately: visible circular transport buttons (this
+app is gesture-driven and a button would also trigger tap gestures — could be
+added as an overlay if wanted), real blur (RenderEffect measured too costly,
+see N.5c), a "glass" visualizer. The equalizer is not used in this screen
+(still used by local audio mode). Performance: the wave canvas has its own
+graphics layer; without it every tick re-recorded the whole screen (16 ms
+median); now 13 ms median while playing, **0 frames while paused**.
+
 ### N.6 Phases
 
 - **P0 — Probe (device) — DONE 2026-09-21, see N.4:** with music playing, dump `dumpsys media_session`
@@ -464,7 +505,7 @@ bitmap; trimming uniform borders is a possible polish item.
   own `PlaybackService` session and YouTube Music on the phone.
 - **P2 — UI & control — DONE 2026-09-21, see N.5c:** `NowPlayingScreen` reusing `AudioVisual`;
   gestures → transport controls; `NotificationAccessScreen`.
-- **P3 — Background countdown alarm:** exact alarm + high-importance
+- **P3 — Background countdown alarm — DONE 2026-09-21 (notification/sound still to be verified by hand), see N.5d:** exact alarm + high-importance
   notification (section F), since the screen will usually be off.
 - **P4 — Polish:** session override, empty/idle state ("nothing playing"),
   a11y semantics, then decide the fate of local playback.

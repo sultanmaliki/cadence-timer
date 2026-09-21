@@ -1,0 +1,4 @@
+[alarm] boot: completedWhileAway=false
+[alarm] scheduled in 15000ms exact=true
+[alarm] fired: finished=true uiVisible=false
+[alarm] countdown finished but notifications are disabled/denied

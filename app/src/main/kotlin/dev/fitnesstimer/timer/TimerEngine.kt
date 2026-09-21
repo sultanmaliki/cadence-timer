@@ -97,8 +97,11 @@ class TimerEngine(private val clock: () -> Long = { SystemClock.elapsedRealtime(
         return TimerSnapshot(mode, countdownTargetMs, accumulatedMs + live, isRunning, wallNowMs)
     }
 
-    /** Restores without firing callbacks. Silent: not a user-visible transition. */
-    fun restore(snap: TimerSnapshot, wallNowMs: Long) {
+    /**
+     * Restores without firing callbacks (not a user-visible transition).
+     * Returns true if a countdown that was running reached zero while away.
+     */
+    fun restore(snap: TimerSnapshot, wallNowMs: Long): Boolean {
         val gap = wallNowMs - snap.savedWallMs
         val credit = snap.running && gap in 0..MAX_RESTORE_GAP_MS
         val elapsed = snap.elapsedMs.coerceAtLeast(0L) + if (credit) gap else 0L
@@ -113,6 +116,19 @@ class TimerEngine(private val clock: () -> Long = { SystemClock.elapsedRealtime(
         } else {
             runningState = false
         }
+        return snap.running && finished
+    }
+
+    /**
+     * For the countdown alarm, where no UI loop is ticking [nowElapsedRealtime]:
+     * refreshes it, stops a countdown that has reached zero (saving its final
+     * state), and reports whether the countdown is finished.
+     */
+    fun settleIfFinished(): Boolean {
+        if (mode != TimerMode.COUNTDOWN) return false
+        nowElapsedRealtime = clock()
+        if (isRunning && isCountdownFinished) pause()
+        return isCountdownFinished
     }
 
     fun toggleStartPause() {

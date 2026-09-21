@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import dev.fitnesstimer.nowplaying.NowPlayingRepository
 import dev.fitnesstimer.nowplaying.positionNow
 import dev.fitnesstimer.timer.AppTimer
+import dev.fitnesstimer.timer.CountdownAlarm
 import dev.fitnesstimer.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
@@ -38,6 +39,7 @@ class MainActivity : ComponentActivity() {
         if (debuggable && intent.getBooleanExtra("debug_timer_start", false) && savedInstanceState == null) {
             AppTimer.engine.start()
         }
+        if (savedInstanceState == null) handleDebugAction(intent)
         setContent {
             MainScreen(debugUris = debugUris)
         }
@@ -53,6 +55,12 @@ class MainActivity : ComponentActivity() {
     private fun handleDebugAction(intent: android.content.Intent) {
         val debuggable = applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
         if (!debuggable) return
+        // `--el debug_countdown_ms N`: start an N ms countdown (for alarm testing).
+        val countdownMs = intent.getLongExtra("debug_countdown_ms", -1L)
+        if (countdownMs > 0) {
+            AppTimer.engine.switchToCountdown(countdownMs)
+            AppTimer.engine.start()
+        }
         val np = NowPlayingRepository.state.value.nowPlaying
         val action = intent.getStringExtra("debug_np_action") ?: return
         android.util.Log.d("FitnessTimer", "[debug] np action=$action np=${np?.packageName} state=${np?.playbackState}")
@@ -65,8 +73,15 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onPause() {
+        AppTimer.uiVisible = false
+        super.onPause()
+    }
+
     override fun onResume() {
         super.onResume()
+        AppTimer.uiVisible = true
+        CountdownAlarm.cancelFinishedNotification(this)
         // The user may have just toggled notification access in Settings.
         NowPlayingRepository.refresh()
     }

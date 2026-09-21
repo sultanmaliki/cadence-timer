@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
 import androidx.palette.graphics.Palette
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -90,5 +92,78 @@ suspend fun sampleColorFromBitmap(bitmap: Bitmap, fallback: Color): Color =
             swatch?.let { Color(it.rgb) } ?: fallback
         } catch (e: Exception) {
             fallback
+        }
+    }
+
+/** Colors for the One UI-style player: a dark gradient behind it and a bright accent for the wave. */
+data class ArtColors(val top: Color, val bottom: Color, val accent: Color)
+
+val DEFAULT_ART_COLORS = ArtColors(Color(0xFF1B1B1F), Color(0xFF0B0B0D), Color(0xFFC9D0FF))
+
+/** RGB -> (hue 0..360, saturation 0..1, lightness 0..1). Pure. */
+internal fun rgbToHsl(c: Color): Triple<Float, Float, Float> {
+    val r = c.red; val g = c.green; val b = c.blue
+    val max = maxOf(r, g, b); val min = minOf(r, g, b)
+    val l = (max + min) / 2f
+    val d = max - min
+    if (d < 1e-6f) return Triple(0f, 0f, l)
+    val s = d / (1f - kotlin.math.abs(2f * l - 1f))
+    val h = when (max) {
+        r -> ((g - b) / d) % 6f
+        g -> (b - r) / d + 2f
+        else -> (r - g) / d + 4f
+    } * 60f
+    return Triple(if (h < 0f) h + 360f else h, s.coerceIn(0f, 1f), l)
+}
+
+/** (hue 0..360, saturation 0..1, lightness 0..1) -> opaque Color. Pure. */
+internal fun hslToColor(h: Float, s: Float, l: Float): Color {
+    val c = (1f - kotlin.math.abs(2f * l - 1f)) * s
+    val hp = (h % 360f) / 60f
+    val x = c * (1f - kotlin.math.abs(hp % 2f - 1f))
+    val (r1, g1, b1) = when {
+        hp < 1f -> Triple(c, x, 0f)
+        hp < 2f -> Triple(x, c, 0f)
+        hp < 3f -> Triple(0f, c, x)
+        hp < 4f -> Triple(0f, x, c)
+        hp < 5f -> Triple(x, 0f, c)
+        else -> Triple(c, 0f, x)
+    }
+    val m = l - c / 2f
+    return Color(r1 + m, g1 + m, b1 + m)
+}
+
+/**
+ * Pure: derive [ArtColors] from a base (dominant) color and an accent source.
+ * Background: the base hue, always dark (so white text reads) but tinted
+ * rather than near-black, top lighter than bottom. Accent: the accent
+ * source's hue pushed to a bright, saturated tone so the wave is colorful
+ * (a plain lightened dominant color came out grey on dark artwork). Greys stay
+ * neutral instead of being given an arbitrary hue.
+ */
+fun deriveArtColors(base: Color, accentSource: Color): ArtColors {
+    val (bh, bs, _) = rgbToHsl(base)
+    val tint = if (bs < 0.1f) 0f else bs.coerceIn(0.25f, 0.6f)
+    val (ah, asat, _) = rgbToHsl(accentSource)
+    val accent = if (asat < 0.1f) hslToColor(0f, 0f, 0.8f) else hslToColor(ah, asat.coerceAtLeast(0.55f), 0.7f)
+    return ArtColors(
+        top = hslToColor(bh, tint, 0.24f),
+        bottom = hslToColor(bh, tint, 0.09f),
+        accent = accent,
+    )
+}
+
+/** Palette-based [ArtColors] for a bitmap (another app's artwork). Off the main thread. */
+suspend fun sampleArtColors(bitmap: Bitmap): ArtColors =
+    withContext(Dispatchers.Default) {
+        try {
+            val p = Palette.from(bitmap).generate()
+            val base = (p.dominantSwatch ?: p.mutedSwatch ?: p.darkVibrantSwatch)?.rgb
+                ?: return@withContext DEFAULT_ART_COLORS
+            val accentRgb = p.vibrantSwatch?.rgb ?: p.lightVibrantSwatch?.rgb ?: p.darkVibrantSwatch?.rgb
+                ?: p.mutedSwatch?.rgb ?: p.lightMutedSwatch?.rgb ?: base
+            deriveArtColors(Color(base), Color(accentRgb))
+        } catch (e: Exception) {
+            DEFAULT_ART_COLORS
         }
     }
