@@ -5,7 +5,7 @@ The app is **SetBeat** (repo `setbeat`; formerly *Fitness Timer*, then *Cadence*
 
 ```
 setbeat/
-├── README.md  PLAN.md  STRUCTURE.md  DECISIONS.md  CONTRIBUTING.md  LICENSE
+├── README.md  PLAN.md  STRUCTURE.md  DECISIONS.md  CHANGELOG.md  CONTRIBUTING.md  LICENSE
 ├── docs/                            # logo, banner (also the GitHub social preview) and README screenshots
 ├── .github/ISSUE_TEMPLATE/          # bug report template
 ├── test-logs/                       # saved unit/lint/device test run logs
@@ -46,7 +46,7 @@ setbeat/
         └── androidTest/kotlin/dev/fitnesstimer/   # on-device Compose tests: gesture engine (22) + full timer flow via MainScreen (8)
 ```
 
-## v0.2 - companion mode (see `PLAN.md` section N); P1 core and P2 UI built
+## Companion mode (v0.2, see `PLAN.md` section N) - all phases built
 
 ```
         ├── nowplaying/                       # BUILT (P1)

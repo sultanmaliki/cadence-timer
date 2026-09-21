@@ -128,6 +128,7 @@ YouTube Music app instead.
 - [`PLAN.md`](PLAN.md): the technical plan and the reasoning behind every major decision, with what
   was verified on a device and what was not.
 - [`STRUCTURE.md`](STRUCTURE.md): the code layout.
+- [`CHANGELOG.md`](CHANGELOG.md): what changed in each release.
 - [`DECISIONS.md`](DECISIONS.md): decisions made and questions still open.
 - [`test-logs/`](test-logs): saved test and device run logs.
 

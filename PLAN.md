@@ -634,6 +634,16 @@ across repeated forced track changes. The bar-trim was also seen working on a re
   proposed "RepBeat", which turned out to be an existing workout interval-timer app, so the app became
   **SetBeat** (details and the checks made are in `DECISIONS.md`).
 
+### N.5i Rename to SetBeat, banner, changelog (2026-09-21)
+
+- App label and gradle project renamed to **SetBeat**, repo to `setbeat`; the package id stays
+  `dev.fitnesstimer` so installs upgrade. Naming history and the checks behind it: `DECISIONS.md`.
+- `docs/banner.png` (1280x640, generated in code) is the README header and the intended GitHub social
+  preview (uploaded by hand: GitHub has no API for it).
+- `CHANGELOG.md` summarises every release; release notes on GitHub stay the detailed record.
+- Verification for the rename release: 123 unit tests, lint, clean release build, the 30 on-device
+  tests, and a launch/capture smoke test of the release APK on the test phone.
+
 ### N.6 Phases
 
 - **P0 — Probe (device) — DONE 2026-09-21, see N.4:** with music playing, dump `dumpsys media_session`
