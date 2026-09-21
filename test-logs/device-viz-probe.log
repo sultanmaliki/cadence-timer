@@ -1,0 +1,12 @@
+[viz] stopped
+[viz] started session=0 captureSize=1024 rate=20000mHz samplingRate=48000000mHz
+[viz] ACTIVE: first non-zero data peak=106.174385 samplingRate=48000Hz size=1024
+[viz] peak=106.2 low=0.65 mid=0.65 high=0.46
+[viz] peak=68.6 low=0.35 mid=0.59 high=0.67
+[viz] peak=102.2 low=0.61 mid=0.50 high=0.68
+[viz] peak=144.8 low=0.73 mid=0.81 high=0.28
+[viz] peak=138.9 low=0.49 mid=0.61 high=0.61
+[viz] peak=82.3 low=0.58 mid=0.83 high=0.57
+[viz] peak=123.8 low=0.33 mid=0.86 high=0.22
+[viz] peak=102.0 low=0.38 mid=0.73 high=0.16
+[viz] peak=99.6 low=0.70 mid=0.33 high=0.08

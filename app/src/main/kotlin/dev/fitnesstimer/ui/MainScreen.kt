@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -18,10 +19,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -35,13 +40,21 @@ import androidx.media3.common.Tracks
 import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.ContentFrame
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
+import dev.fitnesstimer.gesture.ScrubAccumulator
 import dev.fitnesstimer.gesture.TimerGestureActions
 import dev.fitnesstimer.gesture.timerGestures
 import dev.fitnesstimer.media.connectMediaController
+import dev.fitnesstimer.media.tryPersistReadGrant
+import dev.fitnesstimer.nowplaying.AudioLevelSource
+import dev.fitnesstimer.nowplaying.NowPlayingRepository
+import dev.fitnesstimer.nowplaying.POSITION_UNKNOWN
+import dev.fitnesstimer.nowplaying.positionNow
 import dev.fitnesstimer.render.AudioVisual
 import dev.fitnesstimer.render.NegativeTimerText
 import dev.fitnesstimer.render.sampleAmbientColor
 import dev.fitnesstimer.render.sampleAudioArtwork
+import dev.fitnesstimer.render.DEFAULT_ART_COLORS
+import dev.fitnesstimer.render.sampleArtColors
 import dev.fitnesstimer.timer.AppTimer
 import dev.fitnesstimer.timer.formatElapsed
 import kotlinx.coroutines.delay
@@ -63,8 +76,9 @@ private const val TAG = "FitnessTimer"
  * is treated as a one-item, unsaved queue, and a played playlist as a
  * multi-item one — same downstream logic either way, no special-casing.
  */
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
-fun MainScreen(debugUri: Uri? = null) {
+fun MainScreen(debugUris: List<Uri> = emptyList()) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
 
@@ -95,73 +109,150 @@ fun MainScreen(debugUri: Uri? = null) {
         onDispose { toRelease?.release() }
     }
 
-    var queue by remember { mutableStateOf<List<Uri>>(listOfNotNull(debugUri)) }
-    var queueIndex by remember { mutableIntStateOf(0) }
+    // The PLAYER is the single source of truth for the queue (item count,
+    // current item, index): everything below is mirrored from the controller
+    // by the listener, so an Activity recreation (font/locale/dark-mode
+    // change) just re-syncs instead of showing "no media" over live audio,
+    // and next/previous/auto-advance are native player behaviour (which is
+    // also what makes the notification's next/prev buttons work).
+    var mediaItemCount by remember { mutableIntStateOf(0) }
+    var currentUri by remember { mutableStateOf<Uri?>(null) }
+    var pendingQueue by remember { mutableStateOf<List<Uri>?>(debugUris.ifEmpty { null }) }
+    var playbackError by remember { mutableStateOf<String?>(null) }
     var ambientColor by remember { mutableStateOf(DEFAULT_AMBIENT) }
     var audioArtwork by remember { mutableStateOf<Bitmap?>(null) }
     var isAudioOnly by remember { mutableStateOf(false) }
+    var isPlaying by remember { mutableStateOf(false) }
     var holdProgress by remember { mutableFloatStateOf(0f) }
     var showSourceMenu by remember { mutableStateOf(false) }
     var showPlaylistScreen by remember { mutableStateOf(false) }
     var showTimerModeMenu by remember { mutableStateOf(false) }
 
-    val currentUri = queue.getOrNull(queueIndex)
+    val hasMedia = mediaItemCount > 0
 
-    // Whether the currently loaded item has a video track — drives the
-    // ContentFrame-vs-AudioVisual choice below. Reads the Tracks payload
-    // delivered by this exact callback (any group of type TRACK_TYPE_VIDEO)
-    // rather than a currently-selected-format signal, which was seen going
-    // stale for a beat after a real video's tracks had already resolved.
+    // Source mode (PLAN.md N): COMPANION shows what another app is playing;
+    // otherwise the local player is shown. Survives Activity recreation.
+    var companionMode by rememberSaveable { mutableStateOf(debugUris.isEmpty()) }
+    var accessCardDismissed by rememberSaveable { mutableStateOf(false) }
+    val nowPlayingState by NowPlayingRepository.state.collectAsState()
+    var companionColors by remember { mutableStateOf(DEFAULT_ART_COLORS) }
+    val liveCompanion by rememberUpdatedState(companionMode)
+    val liveNowPlaying by rememberUpdatedState(nowPlayingState.nowPlaying)
+
     DisposableEffect(controller) {
         val c = controller ?: return@DisposableEffect onDispose {}
+        mediaItemCount = c.mediaItemCount
+        isPlaying = c.isPlaying
+        // Local audio is already playing (e.g. app reopened): show it.
+        if (c.mediaItemCount > 0 && c.isPlaying) companionMode = false
+        currentUri = c.currentMediaItem?.localConfiguration?.uri
+        val initialGroups = c.currentTracks.groups
+        if (initialGroups.isNotEmpty()) isAudioOnly = initialGroups.none { it.type == C.TRACK_TYPE_VIDEO }
         val listener = object : Player.Listener {
+            override fun onTimelineChanged(timeline: androidx.media3.common.Timeline, reason: Int) {
+                mediaItemCount = c.mediaItemCount
+            }
+            override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                currentUri = mediaItem?.localConfiguration?.uri
+                isAudioOnly = false // reset until this item's tracks resolve (avoids a stale-art flash)
+                audioArtwork = null
+                playbackError = null
+            }
             override fun onTracksChanged(tracks: Tracks) {
-                isAudioOnly = tracks.groups.none { it.type == C.TRACK_TYPE_VIDEO }
+                if (tracks.groups.isNotEmpty()) {
+                    isAudioOnly = tracks.groups.none { it.type == C.TRACK_TYPE_VIDEO }
+                }
                 Log.d(TAG, "onTracksChanged: groups=${tracks.groups.map { it.type }} isAudioOnly=$isAudioOnly")
             }
             override fun onPlaybackStateChanged(playbackState: Int) {
                 Log.d(TAG, "onPlaybackStateChanged: $playbackState (1=IDLE,2=BUFFERING,3=READY,4=ENDED)")
             }
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                Log.d(TAG, "onIsPlayingChanged: $isPlaying")
+            override fun onIsPlayingChanged(playing: Boolean) {
+                isPlaying = playing
+                Log.d(TAG, "onIsPlayingChanged: $playing")
             }
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 Log.e(TAG, "onPlayerError: ${error.errorCodeName} - ${error.message}", error)
+                // A deleted/moved/unreadable file: say so and skip on rather
+                // than leaving a black screen stuck on the bad item.
+                playbackError = "Can't play this file"
+                if (c.hasNextMediaItem()) {
+                    c.seekToNextMediaItem()
+                    c.prepare()
+                    c.play()
+                }
             }
         }
         c.addListener(listener)
         onDispose { c.removeListener(listener) }
     }
 
+    // Starts a fresh queue on the player as ONE setMediaItems call, so the
+    // player owns real next/previous/auto-advance. Waits for the controller
+    // if it hasn't connected yet.
+    LaunchedEffect(controller, pendingQueue) {
+        val c = controller ?: return@LaunchedEffect
+        val queue = pendingQueue ?: return@LaunchedEffect
+        pendingQueue = null
+        if (queue.isEmpty()) return@LaunchedEffect
+        playbackError = null
+        c.setMediaItems(queue.map { MediaItem.fromUri(it) }, 0, 0L)
+        c.prepare()
+        c.play()
+        Log.d(TAG, "queue started: ${queue.size} item(s)")
+    }
+
     val pickMedia = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         Log.d(TAG, "pickMedia result: uri=$uri")
         if (uri != null) {
-            try {
-                context.contentResolver.takePersistableUriPermission(uri, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            } catch (e: Exception) {
-                Log.e(TAG, "takePersistableUriPermission FAILED for $uri", e)
-            }
-            queue = listOf(uri)
-            queueIndex = 0
+            tryPersistReadGrant(context, uri)
+            companionMode = false
+            pendingQueue = listOf(uri)
         }
     }
 
-    // Loads whatever the queue points at; resamples ambient color + (in
-    // case it's audio) embedded artwork once per file.
-    LaunchedEffect(currentUri, controller) {
-        val uri = currentUri ?: return@LaunchedEffect
-        val c = controller
-        Log.d(TAG, "load effect: uri=$uri controller=$c isConnected=${c?.isConnected}")
-        if (c == null) return@LaunchedEffect
-        isAudioOnly = false // reset until the new item's tracks resolve, avoids a stale-art flash
+    // Android 13+: the countdown-finished notification needs the runtime permission.
+    // Asked when the user picks a countdown, the first moment it matters.
+    val requestNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        Log.d(TAG, "POST_NOTIFICATIONS granted=$granted")
+    }
+    fun ensureNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            androidx.core.content.ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) !=
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+        ) {
+            requestNotifications.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    // Beat-reactive wave (PLAN.md N.5e): audio visualizer needs RECORD_AUDIO.
+    val prefs = remember { context.getSharedPreferences("prefs", android.content.Context.MODE_PRIVATE) }
+    var beatCardDismissed by remember { mutableStateOf(prefs.getBoolean("beat_card_dismissed", false)) }
+    val recordGranted by AudioLevelSource.permission.collectAsState()
+    val requestRecord = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        Log.d(TAG, "RECORD_AUDIO granted=$granted")
+        AudioLevelSource.refreshPermission(context)
+    }
+    val companionPlaying = companionMode && nowPlayingState.nowPlaying?.isPlaying == true
+    DisposableEffect(companionPlaying) {
+        AudioLevelSource.setWanted(companionPlaying)
+        onDispose { AudioLevelSource.setWanted(false) }
+    }
+
+    // Once per current item: sample ambient color, and embedded artwork
+    // (used only in audio mode).
+    LaunchedEffect(currentUri) {
         audioArtwork = null
-        c.setMediaItem(MediaItem.fromUri(uri))
-        Log.d(TAG, "setMediaItem done, mediaItemCount=${c.mediaItemCount}")
-        c.prepare()
-        c.play()
-        Log.d(TAG, "prepare()+play() called, playWhenReady=${c.playWhenReady} playbackState=${c.playbackState}")
+        val uri = currentUri ?: return@LaunchedEffect
         ambientColor = sampleAmbientColor(context, uri, DEFAULT_AMBIENT)
         audioArtwork = sampleAudioArtwork(context, uri)
+    }
+
+    // Ambient color for companion mode: sampled once per track from the
+    // source app's artwork (the repository keeps the bitmap instance stable).
+    val companionArtwork = nowPlayingState.nowPlaying?.artwork
+    LaunchedEffect(companionArtwork) {
+        companionColors = if (companionArtwork != null) sampleArtColors(companionArtwork) else DEFAULT_ART_COLORS
     }
 
     // Drives recomposition of the timer text while running, and detects
@@ -175,11 +266,16 @@ fun MainScreen(debugUri: Uri? = null) {
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                 break
             }
-            delay(100)
+            delay(timer.msUntilDisplayChange())
         }
     }
 
-    val actions = remember(controller, queue, queueIndex) {
+    // Stable across recompositions/controller connect: pointerInput is keyed on
+    // this object, and a key change would cancel an in-flight gesture and
+    // forget a pending double-tap. Lambdas read the live controller instead.
+    val liveController by rememberUpdatedState(controller)
+    val scrub = remember { ScrubAccumulator() }
+    val actions = remember {
         TimerGestureActions(
             isPaused = { !timer.isRunning },
             onTogglePause = { timer.toggleStartPause() },
@@ -189,42 +285,113 @@ fun MainScreen(debugUri: Uri? = null) {
             },
             onHoldProgress = { holdProgress = it },
             onSeekBack = {
-                controller?.let { c -> c.seekTo((c.currentPosition - 10_000L).coerceAtLeast(0L)) }
-            },
-            onSeekForward = {
-                controller?.let { c ->
-                    val duration = c.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
-                    c.seekTo((c.currentPosition + 10_000L).coerceAtMost(duration))
+                if (liveCompanion) {
+                    liveNowPlaying?.let { np ->
+                        val pos = np.positionNow()
+                        if (pos != POSITION_UNKNOWN) NowPlayingRepository.seekTo((pos - 10_000L).coerceAtLeast(0L))
+                    }
+                } else {
+                    liveController?.let { c -> c.seekTo((c.currentPosition - 10_000L).coerceAtLeast(0L)) }
                 }
             },
-            onScrub = { fractionDelta ->
-                controller?.let { c ->
-                    val duration = c.duration
-                    if (duration > 0) {
-                        val target = (c.currentPosition + fractionDelta * duration).toLong()
-                        c.seekTo(target.coerceIn(0L, duration))
+            onSeekForward = {
+                if (liveCompanion) {
+                    liveNowPlaying?.let { np ->
+                        val pos = np.positionNow()
+                        if (pos != POSITION_UNKNOWN) {
+                            val target = pos + 10_000L
+                            NowPlayingRepository.seekTo(if (np.durationMs > 0) target.coerceAtMost(np.durationMs) else target)
+                        }
+                    }
+                } else {
+                    liveController?.let { c ->
+                        val duration = c.duration.takeIf { it > 0 } ?: Long.MAX_VALUE
+                        c.seekTo((c.currentPosition + 10_000L).coerceAtMost(duration))
                     }
                 }
             },
-            onToggleMediaPlayPause = { controller?.let { c -> c.playWhenReady = !c.playWhenReady } },
-            // Clamped, not wraparound — simplest v1 behaviour; no-op past
-            // either end of the queue (including the common one-item case).
-            onSkipNext = { if (queueIndex < queue.lastIndex) queueIndex += 1 },
-            onSkipPrevious = { if (queueIndex > 0) queueIndex -= 1 },
+            onScrub = { fractionDelta ->
+                if (liveCompanion) {
+                    liveNowPlaying?.let { np ->
+                        if (np.durationMs > 0 && np.positionNow() != POSITION_UNKNOWN) {
+                            scrub.move(
+                                startPosition = { np.positionNow() },
+                                deltaMs = (fractionDelta * np.durationMs).toLong(),
+                                durationMs = np.durationMs,
+                                nowMs = android.os.SystemClock.uptimeMillis(),
+                            )?.let { NowPlayingRepository.seekTo(it) }
+                        }
+                    }
+                } else {
+                    liveController?.let { c ->
+                        val duration = c.duration
+                        if (duration > 0) {
+                            scrub.move(
+                                startPosition = { c.currentPosition },
+                                deltaMs = (fractionDelta * duration).toLong(),
+                                durationMs = duration,
+                                nowMs = android.os.SystemClock.uptimeMillis(),
+                            )?.let { c.seekTo(it) }
+                        }
+                    }
+                }
+            },
+            onScrubEnd = {
+                val tail = scrub.end()
+                if (tail != null) {
+                    if (liveCompanion) NowPlayingRepository.seekTo(tail) else liveController?.seekTo(tail)
+                }
+            },
+            onToggleMediaPlayPause = {
+                if (liveCompanion) {
+                    NowPlayingRepository.playPause()
+                } else {
+                    liveController?.let { c ->
+                        when {
+                            c.mediaItemCount == 0 -> {}
+                            c.isPlaying -> c.pause()
+                            else -> {
+                                if (c.playbackState == Player.STATE_ENDED) c.seekToDefaultPosition(0)
+                                if (c.playbackState == Player.STATE_IDLE) c.prepare()
+                                c.play()
+                            }
+                        }
+                    }
+                }
+            },
+            // Clamped, not wraparound — no-op past either end of the queue.
+            // Companion mode forwards regardless of advertised actions (they
+            // are advisory; the source app decides).
+            onSkipNext = {
+                if (liveCompanion) NowPlayingRepository.skipNext()
+                else liveController?.let { c -> if (c.hasNextMediaItem()) c.seekToNextMediaItem() }
+            },
+            onSkipPrevious = {
+                if (liveCompanion) NowPlayingRepository.skipPrevious()
+                else liveController?.let { c -> if (c.hasPreviousMediaItem()) c.seekToPreviousMediaItem() }
+            },
             onTimerModePicker = { showTimerModeMenu = true },
             onMediaSourcePicker = { showSourceMenu = true },
         )
     }
 
-    val hasMedia = currentUri != null
-
     Box(
         Modifier
             .fillMaxSize()
-            .background(if (hasMedia) ambientColor else DEFAULT_AMBIENT)
+            .then(
+                if (companionMode) Modifier.background(Brush.verticalGradient(listOf(companionColors.top, companionColors.bottom)))
+                else Modifier.background(if (hasMedia) ambientColor else DEFAULT_AMBIENT)
+            )
             .timerGestures(actions)
     ) {
         when {
+            companionMode -> CompanionBody(
+                nowPlaying = nowPlayingState.nowPlaying,
+                accessGranted = nowPlayingState.accessGranted,
+                colors = companionColors,
+                timerText = { formatElapsed(timer.displayMs) },
+                holdProgress = { holdProgress },
+            )
             hasMedia && isAudioOnly -> {
                 // Timer goes BELOW the artwork here (AudioVisual's slot),
                 // not centered over it — the two were overlapping/clashing
@@ -232,11 +399,12 @@ fun MainScreen(debugUri: Uri? = null) {
                 AudioVisual(
                     artwork = audioArtwork,
                     ambientColor = ambientColor,
+                    isPlaying = isPlaying,
                     modifier = Modifier.fillMaxSize(),
                 ) {
                     NegativeTimerText(
-                        text = formatElapsed(timer.displayMs),
-                        holdProgress = holdProgress,
+                        text = { formatElapsed(timer.displayMs) },
+                        holdProgress = { holdProgress },
                         modifier = Modifier.fillMaxWidth().height(90.dp),
                     )
                 }
@@ -251,8 +419,8 @@ fun MainScreen(debugUri: Uri? = null) {
                     )
                 }
                 NegativeTimerText(
-                    text = formatElapsed(timer.displayMs),
-                    holdProgress = holdProgress,
+                    text = { formatElapsed(timer.displayMs) },
+                    holdProgress = { holdProgress },
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -265,17 +433,46 @@ fun MainScreen(debugUri: Uri? = null) {
                     modifier = Modifier.align(Alignment.BottomCenter),
                 )
                 NegativeTimerText(
-                    text = formatElapsed(timer.displayMs),
-                    holdProgress = holdProgress,
+                    text = { formatElapsed(timer.displayMs) },
+                    holdProgress = { holdProgress },
                     modifier = Modifier.fillMaxSize(),
                 )
             }
         }
     }
 
+    if (companionMode && nowPlayingState.accessGranted && nowPlayingState.nowPlaying != null &&
+        !recordGranted && !beatCardDismissed
+    ) {
+        BeatAccessCard(
+            onEnable = { requestRecord.launch(android.Manifest.permission.RECORD_AUDIO) },
+            onDismiss = {
+                beatCardDismissed = true
+                prefs.edit().putBoolean("beat_card_dismissed", true).apply()
+            },
+        )
+    }
+
+    if (companionMode && !nowPlayingState.accessGranted && !accessCardDismissed) {
+        NotificationAccessCard(onDismiss = { accessCardDismissed = true })
+    }
+
+    if (!companionMode) playbackError?.let { msg ->
+        Box(Modifier.fillMaxSize().padding(bottom = 48.dp), contentAlignment = Alignment.BottomCenter) {
+            Text(msg, color = Color.White)
+        }
+    }
+
     if (showSourceMenu) {
         MediaSourceMenu(
             onDismiss = { showSourceMenu = false },
+            onNowPlaying = {
+                showSourceMenu = false
+                // Two audio sources at once would be confusing: stop local playback.
+                controller?.pause()
+                accessCardDismissed = false
+                companionMode = true
+            },
             onChooseFile = {
                 showSourceMenu = false
                 pickMedia.launch(arrayOf("video/*", "audio/*"))
@@ -291,8 +488,8 @@ fun MainScreen(debugUri: Uri? = null) {
         PlaylistScreen(
             onDismiss = { showPlaylistScreen = false },
             onPlayPlaylist = { playlist ->
-                queue = playlist.itemUris.map { Uri.parse(it) }
-                queueIndex = 0
+                companionMode = false
+                pendingQueue = playlist.itemUris.map { Uri.parse(it) }
                 showPlaylistScreen = false
             },
         )
@@ -308,6 +505,7 @@ fun MainScreen(debugUri: Uri? = null) {
             onChooseCountdown = { targetMs ->
                 showTimerModeMenu = false
                 timer.switchToCountdown(targetMs)
+                ensureNotificationPermission()
             },
         )
     }

@@ -2,6 +2,8 @@ package dev.fitnesstimer.media
 
 import android.os.Bundle
 import android.util.Log
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -9,6 +11,7 @@ import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -34,7 +37,22 @@ class PlaybackService : MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
-        player = ExoPlayer.Builder(this).build()
+        AppTimer.init(this)
+        // Audio hygiene for a phone used with headphones: request audio focus
+        // (calls / other apps pause us), pause when headphones unplug instead
+        // of blasting the speaker, and hold a partial wake lock so local
+        // playback doesn't stutter with the screen off.
+        player = ExoPlayer.Builder(this)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+                    .build(),
+                /* handleAudioFocus = */ true,
+            )
+            .setHandleAudioBecomingNoisy(true)
+            .setWakeMode(C.WAKE_MODE_LOCAL)
+            .build()
         player.addListener(object : androidx.media3.common.Player.Listener {
             override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
                 Log.e("FitnessTimer", "[service] onPlayerError: ${error.errorCodeName} - ${error.message}", error)
@@ -82,6 +100,16 @@ class PlaybackService : MediaSessionService() {
             session: MediaSession,
             controller: MediaSession.ControllerInfo,
         ): MediaSession.ConnectionResult {
+            // The service must be exported (system UI, Bluetooth, Android Auto
+            // connect from outside), so gate here: only our own app, the
+            // system media notification, or system-trusted controllers.
+            val allowed = controller.packageName == packageName ||
+                session.isMediaNotificationController(controller) ||
+                controller.isTrusted
+            if (!allowed) {
+                Log.w("FitnessTimer", "[service] rejected controller ${controller.packageName}")
+                return MediaSession.ConnectionResult.reject()
+            }
             // Grant everything explicitly. super.onConnect()'s result was
             // logged on-device and both its command sets hashed as EMPTY
             // (Player$Commands@0, SessionCommands@1f = empty-set hashes), so
@@ -111,7 +139,7 @@ class PlaybackService : MediaSessionService() {
                 mediaSession.setCustomLayout(listOf(timerCommandButton()))
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
-            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+            return Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
         }
     }
 }

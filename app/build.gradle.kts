@@ -13,13 +13,18 @@ android {
         // Not yet the final v1 minSdk decision.
         minSdk = 29
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1-spike"
+        versionCode = 2
+        versionName = "0.2"
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
+            // Sideload builds are signed with the standard debug key so they install over
+            // earlier v0.1.x builds. The release variant is NOT debuggable, which switches
+            // off the debug-only test hooks. A private release keystore is needed before
+            // any Play/F-Droid distribution.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

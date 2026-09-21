@@ -33,6 +33,11 @@ class PlaylistRepository(private val file: File) {
                 )
             }
         } catch (e: Exception) {
+            // Keep the unreadable file instead of letting the next save
+            // silently overwrite (and permanently lose) it.
+            val backup = File(file.parentFile, file.name + ".corrupt")
+            backup.delete()
+            file.renameTo(backup)
             emptyList()
         }
     }

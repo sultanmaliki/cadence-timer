@@ -11,9 +11,21 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- ExoPlayer setWakeMode(WAKE_MODE_LOCAL): keeps CPU awake for local playback with screen off. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Countdown alarm (PLAN.md F). USE_EXACT_ALARM is auto-granted on Android 13+ and is
+         Play-restricted to genuine alarm/timer apps; SCHEDULE_EXACT_ALARM covers Android 12.
+         Alarms don't survive reboot, so the boot receiver reschedules. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Beat-reactive wave (PLAN.md N.5e): android.media.audiofx.Visualizer on the output mix needs
+         both. Nothing is recorded, stored or sent; asked for only after an in-app explanation. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
@@ -39,6 +51,26 @@
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <!-- Exists only so the user can grant notification access, which
+             authorizes reading other apps' media sessions (PLAN.md N).
+             The service ignores all notifications. -->
+        <service
+            android:name=".nowplaying.NowPlayingListenerService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <receiver android:name=".timer.CountdownAlarmReceiver" android:exported="false" />
+        <receiver android:name=".timer.BootReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -31,16 +31,19 @@ import androidx.compose.ui.unit.sp
  */
 @Composable
 fun NegativeTimerText(
-    text: String,
-    holdProgress: Float,
+    text: () -> String,
+    holdProgress: () -> Float,
     modifier: Modifier = Modifier,
 ) {
     val textMeasurer = rememberTextMeasurer()
 
     Box(modifier.drawWithContent {
         drawContent()
+        // Lambdas (not values) so the state behind them is read HERE, in the
+        // draw phase: a tick invalidates only this draw, not the whole screen.
+        val progress = holdProgress()
         val layout = textMeasurer.measure(
-            text = text,
+            text = text(),
             style = TextStyle(fontSize = 64.sp, color = Color.White),
         )
         val topLeft = Offset(
@@ -49,13 +52,13 @@ fun NegativeTimerText(
         )
         drawText(textLayoutResult = layout, topLeft = topLeft, blendMode = BlendMode.Difference)
 
-        if (holdProgress > 0f) {
+        if (progress > 0f) {
             val ringRadius = (layout.size.width.coerceAtLeast(layout.size.height)) * 0.75f
             val center = Offset(size.width / 2f, size.height / 2f)
             drawArc(
                 color = Color.White,
                 startAngle = -90f,
-                sweepAngle = 360f * holdProgress,
+                sweepAngle = 360f * progress,
                 useCenter = false,
                 topLeft = Offset(center.x - ringRadius, center.y - ringRadius),
                 size = androidx.compose.ui.geometry.Size(ringRadius * 2, ringRadius * 2),

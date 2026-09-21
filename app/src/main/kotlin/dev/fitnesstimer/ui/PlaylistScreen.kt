@@ -1,6 +1,6 @@
 package dev.fitnesstimer.ui
 
-import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -32,6 +32,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import dev.fitnesstimer.media.releaseReadGrant
+import dev.fitnesstimer.media.tryPersistReadGrant
 import dev.fitnesstimer.playlist.Playlist
 import dev.fitnesstimer.playlist.PlaylistRepository
 import java.util.UUID
@@ -65,7 +67,7 @@ fun PlaylistScreen(
         val name = pendingNewPlaylistName
         pendingNewPlaylistName = null
         if (name != null && uris.isNotEmpty()) {
-            uris.forEach { context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            uris.forEach { tryPersistReadGrant(context, it) }
             persist(playlists + Playlist(UUID.randomUUID().toString(), name, uris.map { it.toString() }))
         }
     }
@@ -74,7 +76,7 @@ fun PlaylistScreen(
         val targetId = addingToPlaylistId
         addingToPlaylistId = null
         if (targetId != null && uris.isNotEmpty()) {
-            uris.forEach { context.contentResolver.takePersistableUriPermission(it, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            uris.forEach { tryPersistReadGrant(context, it) }
             persist(
                 playlists.map { p ->
                     if (p.id == targetId) p.copy(itemUris = p.itemUris + uris.map { it.toString() }) else p
@@ -124,7 +126,14 @@ fun PlaylistScreen(
                                     addingToPlaylistId = playlist.id
                                     addFilesPicker.launch(arrayOf("video/*", "audio/*"))
                                 }) { Text("Add files") }
-                                TextButton(onClick = { persist(playlists.filterNot { it.id == playlist.id }) }) {
+                                TextButton(onClick = {
+                                    val remaining = playlists.filterNot { it.id == playlist.id }
+                                    // Free grants no other playlist still references.
+                                    val stillUsed = remaining.flatMap { it.itemUris }.toSet()
+                                    playlist.itemUris.filterNot { it in stillUsed }
+                                        .forEach { releaseReadGrant(context, Uri.parse(it)) }
+                                    persist(remaining)
+                                }) {
                                     Text("Delete")
                                 }
                             }

@@ -1,5 +1,10 @@
 # Technical Plan
 
+> **Naming, 2026-09-21:** the app is now called **Cadence** (repo `cadence-timer`); it was
+> "Fitness Timer" while this plan was written, so older sections and dates may still say so.
+> The Android package id stays `dev.fitnesstimer` on purpose: changing the application id would
+> stop the app upgrading over existing installs.
+
 Grounded in a research pass against primary Android/AOSP/Media3/Play sources
 (Sept 2026), each finding adversarially re-checked. Claims below are the
 conclusions; anything genuinely unresolved is called out as such rather than
@@ -13,6 +18,10 @@ direct stream — with the timer rendered as a minimal effect layered into that
 media. Differentiator: media is the primary surface, the timer is the
 accessory (most timer apps are the reverse).
 
+**Direction update, 2026-09-21:** v0.2 adds *companion mode* — the app shows
+and controls whatever audio another app (YouTube Music, Spotify, ...) is
+already playing, and never plays it itself. See section N.
+
 ## B. Feasibility
 
 | Feature | Classification | Notes |
@@ -24,6 +33,7 @@ accessory (most timer apps are the reverse).
 | Send play/pause/seek/skip to another app | Android-dependent | Framework forwards commands regardless of advertised capability; the *target app* may silently ignore them |
 | **Negative/inverted timer text over full-screen video** | **Challenging — unproven, needs a prototype spike** | See below |
 | Same effect over another app's video | **Not possible** | No API exposes another app's decoded frames without per-session, user-consented `MediaProjection`, which also blanks secure/DRM content. Third-party media is control+metadata only, never a drawable video surface. |
+| Play a YouTube / YouTube Music link inside this app | **Decided against, 2026-09-21** | Official embedding forbids overlays and background/audio-only playback; unofficial extraction is outside YouTube's rules. Replaced by companion mode — see section N.1 |
 | CD/vinyl animation over audio artwork | Straightforward | Pure Compose animation |
 | Custom gesture system (tap/double-tap/2-finger/hold) | Straightforward, hand-built | No built-in Compose detector for two-finger tap/swipe; requires a custom `pointerInput` state machine |
 | Exact countdown-complete alarm while backgrounded | Straightforward, needs a policy choice | `SCHEDULE_EXACT_ALARM` (user-grant) vs `USE_EXACT_ALARM` (Play auto-grants to genuine alarm/timer apps) |
@@ -53,9 +63,8 @@ proven not to work.
 
 **Resolved 2026-09-20:** the TextureView + Difference-blend approach was
 prototyped and confirmed working on a real device (Android 16 / API 36) —
-see `DECISIONS.md` for the on-device evidence and
-`app/src/main/kotlin/dev/fitnesstimer/render/RenderSpikeScreen.kt` for the
-implementation. This is the renderer for local/online video. Fallback for
+see `DECISIONS.md` for the on-device evidence (the
+spike screen was later folded into `render/NegativeTimerText.kt`). This is the renderer for local/online video. Fallback for
 API < 29 (where `BlendMode.Difference` silently no-ops to `SrcOver`) remains
 plain contrast-color/shadow text, not yet re-verified on-device.
 
@@ -202,12 +211,12 @@ convention, not a documented Android formula.
 ## I. Roadmap
 
 1. ~~**Rendering spike**~~ — done, confirmed working on-device 2026-09-20 (see `DECISIONS.md`).
-2. ~~Timer engine~~ — done (stopwatch only; countdown + mode picker still pending). No reboot/process-death persistence yet.
+2. ~~Timer engine~~ — done: stopwatch + countdown + mode picker; persisted across process death (v0.1.1). Countdown completion is still foreground-only — the background alarm is pulled into v0.2 (section N.6).
 3. ~~Gesture engine~~ — done as one unified state machine (`gesture/TimerGestures.kt`), skipped the "isolated against a dummy timer" staging and went straight to full integration (step 5) since the timer engine was quick to build alongside it.
-4. Local media playback — minimal version done (SAF `OpenDocument` picker wired to the top-right corner gesture, single file, no persisted-URI-across-restart handling yet — that part of this step remains open).
+4. ~~Local media playback~~ — done and hardened by v0.1.1: `MediaSessionService` + `MediaController`, player-owned queue (playlists, next/prev/auto-advance), notification controls incl. a timer button, audio focus/noisy/wake lock, unplayable-file skipping. SAF grants are persisted (safely) and released on playlist delete.
 5. ~~Full-screen integration~~ — done: timer + local media + gestures + ambient/aspect-ratio all on one screen (`ui/MainScreen.kt`), 2026-09-20. Manual on-device gesture testing is the user's, not automated — MIUI's ADB security policy blocks synthetic `input tap`/`swipe` on the test device (`SecurityException: Injecting input events requires INJECT_EVENTS permission`), so the gesture priority/timing design in section E hasn't been script-verified, only compiled and smoke-tested (app runs, doesn't crash, a hold-to-reset ring was observed rendering correctly during a real touch).
-6. Third-party MediaSession integration, including the restricted-settings
-   onboarding flow.
+6. ~~Third-party MediaSession integration~~ — promoted to the v0.2 headline
+   feature (section N), including the restricted-settings onboarding flow.
 7. ~~Online stream source~~ — dropped from v1, 2026-09-20 (see `DECISIONS.md`).
 8. Source-picker UI (manual, persists until changed), polish, accessibility
    semantics layer.
@@ -221,6 +230,9 @@ read/control of other apps' media sessions, negative-text video rendering
 with native-aspect-ratio + ambient-color letterboxing, CD/artwork audio
 rendering, full gesture system, manual persistent source picker, local
 notification-based countdown alert.
+
+**v0.2 addition:** companion mode (section N). Whether local playback stays
+is an open decision (`DECISIONS.md`); until decided, nothing is removed.
 
 **Out:** workout tracking, reps/sets, calories, social features, AI
 features, accounts, cloud sync, stats/dashboards, interval sequencing beyond
@@ -256,6 +268,15 @@ update), live-blurred ambient background (deferred, see section H).
   a self-chosen design call.
 - FFmpeg/AV1 optional codec extensions bring separate copyleft-flavored
   licensing — skip for v1.
+- (v0.2) Notification-access is a sensitive permission: it technically
+  exposes all notifications. The app must read media sessions only and say so
+  in onboarding. Restricted-settings friction on Android 13+ for sideloaded
+  installs; HyperOS 3.0 behavior unverified.
+- (v0.2) Source apps decide what they publish: artwork may be a bitmap, only
+  a URI, or absent; transport commands can be ignored. Observed behavior of
+  YouTube Music is still unprobed (no active session at probe time).
+- (v0.2) With another app owning playback, the screen is usually off — the
+  countdown-complete alert must not depend on the app being visible.
 
 ## M. Open-source setup
 
@@ -269,3 +290,289 @@ update), live-blurred ambient background (deferred, see section H).
   there's no need for it on a personal-use project.
 - Release: tagged GitHub Releases (APK) → F-Droid once stable → Play as an
   optional secondary channel pending the policy check above.
+
+## N. v0.2 — Companion mode (decided 2026-09-21)
+
+### N.1 Why not "play a YouTube link" inside the app
+
+Researched 2026-09-21 against Google's published policies. The pages were read
+through a summarizing fetch tool — **re-read the originals before relying on
+exact wording**.
+
+| Approach | Verdict |
+|---|---|
+| **A. Official IFrame Player API in a WebView** (e.g. MIT-licensed `android-youtube-player`, v13.0.0) | Compliant, but Required Minimum Functionality says no "overlays, frames, or other visual elements in front of any part of a YouTube embedded player", and Developer Policies forbid background players (III.I.9) and separating audio from video (III.I.7). That kills the negative-timer overlay, audio-only mode, and screen-off playback — the gym use case. Also needs a valid referrer/app identity or players fail with error 153. |
+| **B. Unofficial extraction → ExoPlayer** (e.g. NewPipeExtractor, GPLv3, parses YouTube's web interface/internal API) | Keeps every feature, but is outside YouTube's rules (III.I.14, III.E.1.a), breaks when YouTube changes internals (general knowledge, not verified here), forces GPLv3 onto the app, and rules out Play Store. Rejected. |
+| **C. Companion mode** — the source app plays; we read its media session and control it | Chosen. We never touch their player or content, so no policy conflict; background playback works because it's their app. |
+
+Consequence: no video in this mode, so the "no overlay on third-party video"
+limitation (section B) stops mattering. Because *we* draw the artwork, the
+negative-blend timer can still overlay our own artwork tile.
+
+### N.2 What the feature does
+
+- Detects the currently playing media session of any app (YouTube Music,
+  Spotify, podcasts, ...) and shows: title, artist, album, artwork, play
+  state, position/progress.
+- Reuses the existing audio screen: artwork tile (native aspect ratio,
+  rounded), equalizer colored from artwork, timer below.
+- Gestures drive the *source* app's transport controls (play/pause, next,
+  previous, seek) where the app allows it.
+- Timer/stopwatch is unchanged and independent of the music.
+- No `INTERNET` permission, no network access.
+
+### N.3 Architecture (planned, see `STRUCTURE.md`)
+
+- `NowPlayingListenerService` — a `NotificationListenerService` that does
+  nothing with notifications; its enabled state is what authorizes
+  `MediaSessionManager.getActiveSessions(componentName)` (the mechanism from
+  section B, recorded in earlier research; **not re-confirmed from Android
+  docs on 2026-09-21** — the doc fetch returned only navigation).
+- `NowPlayingRepository` — `OnActiveSessionsChangedListener` plus a
+  `MediaController.Callback` per session (metadata + playback state) exposed
+  as a `StateFlow<NowPlaying?>`.
+- `SessionSelector` (pure) — choose the session to show: the one in
+  `STATE_PLAYING`; ties → most recently active; user override later.
+  Unit-tested.
+- `PositionExtrapolator` (pure) — `position + (elapsedRealtime -
+  lastPositionUpdateTime) * playbackSpeed`; matches the `PlaybackState`
+  accessors (`getPosition`, `getLastPositionUpdateTime`, `getPlaybackSpeed`).
+  Unknown duration/position (negative) handled explicitly. Unit-tested.
+- Artwork fallback chain: metadata bitmap keys → notification large icon
+  (only if trivially available) → ambient-colored tile. Artwork given only as
+  a remote URI can't be fetched without `INTERNET` and is deliberately not
+  fetched. Metadata key names (`METADATA_KEY_ART`, `_ALBUM_ART`,
+  `_DISPLAY_ICON` and `_URI` variants) are from general knowledge —
+  **unverified today**.
+- `NotificationAccessScreen` — onboarding: explain what is read (media
+  sessions only), open `ACTION_NOTIFICATION_LISTENER_SETTINGS`, and explain
+  the Android 13+ "restricted settings" unblock for sideloaded installs.
+
+### N.4 Device facts (probed 2026-09-21, test phone)
+
+- Android 16, HyperOS 3.0 (`OS3.0.302.0.WOJINXM`).
+- Music apps present: Mi Music (`com.miui.player`, the one in real use),
+  YouTube Music (`com.google.android.apps.youtube.music`), and the YouTube
+  app. **Spotify is not installed.**
+- Our app installed by `adb` (installer=null); not a notification listener
+  yet. `ACCESS_RESTRICTED_SETTINGS` appop: default (no override).
+- Existing listeners (Xiaomi/Google/Microsoft services) are enabled — no
+  relevance to our grant.
+- **P0 probe, 2026-09-21 (Mi Music playing; YouTube Music not yet observed).**
+  `dumpsys media_session` listed 3 sessions:
+  - `com.miui.player` (Mi Music) — `PLAYING`, position reported with a
+    last-update timestamp and speed 1.0 (so extrapolation is needed), metadata
+    with 9 entries (title, artist list, album visible in the description),
+    supported actions include stop/pause/play/play-pause, **skip previous,
+    skip next, seek-to**, fast-forward/rewind, repeat/shuffle, plus two
+    custom actions. Its media notification is `MediaStyle`, carries the
+    session token, and has a **large-icon bitmap of only 156x87** — a
+    fallback, clearly lower resolution than a proper artwork bitmap.
+  - `com.google.android.youtube` — a **stale `STOPPED` session with metadata**
+    left behind by the YouTube app (not playing).
+  - `dev.fitnesstimer` — our own `PlaybackService` session (`NONE`).
+  **P1 follow-up (metadata read through a real `MediaController`, same day):**
+  Mi Music's metadata keys are `ALBUM, ALBUM_ARTIST, ART, ARTIST, DURATION,
+  MEDIA_ID, NUM_TRACKS, TITLE, TRACK_NUMBER`. **Artwork is a real bitmap under
+  `ART`, 256x144 (16:9, not square), and no artwork URI is set** — so a
+  bitmap is available with no network, at a modest resolution the artwork
+  tile will upscale (blur/soften rather than crop, keep native aspect ratio).
+  Duration and position come through; position advances between callbacks so
+  extrapolation is needed.
+  Consequences for the design: `SessionSelector` must (1) require
+  `STATE_PLAYING` and ignore stopped/none sessions, and (2) **exclude our own
+  package**, or the app would show itself. Actions are only advertised
+  capabilities — whether Mi Music honors them is untested. `dumpsys` prints
+  only the *count* of metadata entries, not their keys, so whether Mi Music
+  sets a full-size artwork bitmap (vs. only the small notification icon) can
+  only be answered by reading the metadata from a `MediaController` — that is
+  the first job of P1.
+
+### N.5 Known constraints
+
+- Source app may ignore transport commands; capabilities are advisory
+  (section B/G).
+- A video playing in the YouTube app also publishes a session; we can't
+  reliably tell audio from video — accept, offer override.
+- Equalizer stays a decorative loop (real audio reactivity needs
+  `RECORD_AUDIO`), but should follow the source app's play/pause state.
+- Process death: `AppTimer` already persists; whether Android rebinds the
+  listener service after HyperOS kills the process is **assumed, unverified**.
+
+### N.5b Implementation status (P1 done 2026-09-21)
+
+Built and unit-tested: `nowplaying/NowPlaying.kt`, `SessionSelector.kt`,
+`PositionExtrapolator.kt`, `NowPlayingRepository.kt`,
+`NowPlayingListenerService.kt` (manifest entry with
+`BIND_NOTIFICATION_LISTENER_SERVICE`). Verified on the test phone:
+
+- Without access: repository reports `accessGranted=false`, no crash.
+- With access (granted via `adb shell cmd notification allow_listener ...`,
+  which **bypasses the Settings toggle and any restricted-settings screen** —
+  the real onboarding is still untested): correct session chosen (Mi Music),
+  the stale YouTube session and our own session ignored, metadata keys,
+  artwork bitmap, position, actions all read.
+- User flow "leave app, toggle access, return": picked up on resume.
+- **Observed:** `NowPlayingListenerService.onListenerConnected` never fired
+  in this test (grant via `cmd`), although `getActiveSessions()` worked. The
+  app therefore refreshes on `onResume` and must not depend on that
+  callback. Whether a real Settings-toggle grant behaves differently is
+  untested.
+- Could not test: listener rebind after the OS kills the process (`kill` is
+  not permitted from the shell, and force-stop is not equivalent).
+
+### N.5c Implementation status (P2 done 2026-09-21)
+
+Built: source mode (companion is the default; picking a file/playlist
+switches to local; a new "Now playing (other apps)" entry in the top-right
+menu switches back and pauses local playback; the mode survives Activity
+recreation), `ui/CompanionScreen.kt` (`CompanionBody`, progress line,
+`NotificationAccessCard`), gestures routed by mode (seek +/-10s, drag-scrub
+with the same throttle, two-finger play/pause, two-finger swipe prev/next,
+all forwarded to the source app's transport controls).
+
+Verified on the test phone with Mi Music:
+- Screen shows the real artwork (rounded, native aspect), title, "artist ·
+  album", equalizer, timer and a progress line; ambient color sampled once
+  per track from the artwork.
+- Controls, driven through the same repository calls the gestures use (a
+  debuggable-only launch hook, since MIUI blocks injected touches):
+  play/pause toggled the source state 3 -> 2 -> 3; seek +10s / -10s moved
+  Mi Music's position by ~10s each way; next changed the track and prev
+  returned to it.
+- Onboarding card shown when access is off, over a working timer screen.
+- **Performance found by measurement and fixed:** the first version
+  rendered ~105 fps with a 20 ms median frame time. `Modifier.blur` on the
+  equalizer glow (RenderEffect, re-rendered every frame while the bars
+  animate) was the cost (20 ms -> 8 ms without it). Replaced by a static
+  radial gradient, and the five 120 Hz animations by one ~30 Hz ticker that
+  only runs while playing. Result: ~60 fps while playing, p50 8 ms,
+  p99 17 ms, and **0 frames while paused**.
+- Equalizer bars were invisible (same color as the background); now a
+  lightened variant of the ambient hue.
+- Layout: artwork tile is sized to the image itself (no dead space).
+
+**Hands-on check by the user, 2026-09-21:** the gestures work in companion
+mode — song change, play/pause and the other gestures all act on the source
+app. (Detail of which were tried was not itemized.)
+
+Not verified (needs hands): the real Settings toggle and any restricted-settings screen, the
+"Now playing" menu entry and file/playlist switching, other source apps
+(YouTube Music not observed), a source app that gives no artwork or no
+position/duration. Mi Music's artwork has dark side bars baked into the 16:9
+bitmap; trimming uniform borders is a possible polish item.
+
+### N.5d Implementation status (P3 + One UI theme, 2026-09-21)
+
+**P3 — countdown alarm.** `timer/CountdownAlarm.kt` (pure `alarmDelayMs`,
+scheduling, notification), `CountdownAlarmReceivers.kt` (alarm + boot),
+`AppTimer` re-syncs the alarm on every timer state change and after restore.
+Exact `setExactAndAllowWhileIdle` on `ELAPSED_REALTIME_WAKEUP`; falls back to
+the inexact variant if exact alarms aren't allowed. Permissions:
+`USE_EXACT_ALARM` (auto-granted on Android 13+, Play-restricted to genuine
+alarm/timer apps), `SCHEDULE_EXACT_ALARM` (maxSdk 32), `RECEIVE_BOOT_COMPLETED`;
+`POST_NOTIFICATIONS` is requested when the user picks a countdown.
+Documented (Android alarm docs, fetched 2026-09-21): alarms are cancelled on
+shutdown (boot receiver reschedules) and on force-stop.
+The receiver settles the countdown from the real clock (no UI loop needed),
+posts a high-importance alarm-sound notification unless the screen is up
+(`uiVisible`), and a countdown that finished while the process was dead is
+detected on restore (`restore()` returns it; boot receiver notifies).
+Verified on the test phone: alarm scheduled as exact (`exactAllowReason=
+policy_permission`), fired on time with the app in the background, cold/warm
+paths log correctly, foreground skips the notification, denied notification
+permission is handled without a crash. **Not verified:** the notification and
+its sound actually appearing — MIUI blocks granting POST_NOTIFICATIONS from
+the shell, so it needs a hand tap on the runtime dialog. Also untested:
+reboot rescheduling, Doze delivery with the screen off for a long time,
+the sound over headphones.
+
+**One UI-style theme (companion mode).** Design taken from press descriptions
+of One UI 9's media player (the reference video itself could not be viewed):
+colors driven by the album art, colorful waveform progress, title/artist over
+the artwork, blur, smooth transitions. Implemented: `render/WaveProgress.kt`
+(animated sine wave up to the position, dim flat remainder, round thumb, time
+labels; wave flattens smoothly when paused), title/artist overlaid on the
+artwork with a scrim, tinted gradient background + accent derived from the
+artwork (`deriveArtColors`, HSL-based, pure and unit-tested; greys stay
+neutral). Not done, deliberately: visible circular transport buttons (this
+app is gesture-driven and a button would also trigger tap gestures — could be
+added as an overlay if wanted), real blur (RenderEffect measured too costly,
+see N.5c), a "glass" visualizer. The equalizer is not used in this screen
+(still used by local audio mode). Performance: the wave canvas has its own
+graphics layer; without it every tick re-recorded the whole screen (16 ms
+median); now 13 ms median while playing, **0 frames while paused**.
+
+### N.5e Beat-reactive wave (2026-09-21)
+
+Request: the One UI player's waveform reacts to the music in real time (lows,
+mids, highs). Reference image shows a filled, colour-graded wave along the
+progress bar with a ring thumb.
+
+**Mechanism (verified on the test phone, Android 16 / HyperOS 3.0):**
+`android.media.audiofx.Visualizer` on audio session 0 (the output mix). The
+API documentation (mirrored copies; the live reference page could not be
+fetched) says the output mix needs `MODIFY_AUDIO_SETTINGS` and that using the
+Visualizer requires `RECORD_AUDIO`; it also calls the data partial and
+low quality — enough for visualization, not recording. Measured here:
+capture size 1024, 48 kHz, 20 Hz updates, real non-zero data from **another
+app's** playback (Mi Music) with low/mid/high levels swinging live. So
+"react to any playing app" works on this device without MediaProjection.
+Not verified on other devices/ROMs: session-0 capture is known to be
+device-dependent, so `AudioLevelSource.status` reports ACTIVE / SILENT /
+FAILED and the wave falls back to a faint idle ripple (no fake beats).
+
+**Cost to the user:** the `RECORD_AUDIO` runtime permission (plus
+`MODIFY_AUDIO_SETTINGS`, normal). The app never uses the microphone and
+records/stores/sends nothing; it only measures three band levels. A
+one-time in-app card (`BeatAccessCard`) explains this before the system
+dialog. The card itself was not seen on-device (the permission was granted
+by the user through system settings before it was shown).
+
+**Design:** `nowplaying/AudioBands.kt` (pure, unit-tested): FFT -> low
+(20-250 Hz) / mid (250-2500) / high (2500-12000) RMS; `BandNormalizer`
+(adaptive gain + beat emphasis = rise above the recent average, so steady
+loudness reads calm and hits read as peaks — the first version, per-band peak
+scaling only, gave flat-topped plateaus); `BandSmoother`. `AudioLevelSource`
+runs only while companion mode is playing AND the Activity is visible AND the
+permission is granted (verified: stops on Home, restarts on return).
+`render/WaveProgress.kt`: three translucent filled bands (bass tallest) from
+art-derived analogous hues, scrolling left from the thumb so the newest audio
+is at the current position, smooth curves, tapered at both ends, ring thumb,
+flattens when paused. Frames: ~58/s while playing (median 13 ms), 0 when paused.
+
+### N.5f Branding and artwork polish (2026-09-21)
+
+- **Name/icon:** app label "Cadence"; new adaptive icon generated in code (Pillow): a timer
+  progress ring (dim track, gradient arc up to a ring thumb) enclosing three translucent wave hills
+  in the same hues as the in-app wave, on a dark indigo gradient. Ships as adaptive layers
+  (background/foreground) plus a **monochrome layer** for Android 13+ themed icons, in every
+  density; the old artwork-derived launcher PNGs were removed. Not verified: how each launcher
+  (other than the test phone's system UI, where it rendered correctly) masks or themes it.
+- **Artwork bars:** `render/ArtTrim.kt` crops flat-colour bars that some apps (Mi Music) bake into
+  the sides of a portrait cover. Deliberately conservative (bars must exist on both opposite
+  sides, be one flat colour, agree in colour, and leave >= 40% of the image), unit-tested with
+  synthetic images including noisy bars and full-bleed art that must NOT be cropped. Applied once
+  per track in `NowPlayingRepository`, so the colour extraction samples the real cover too. The
+  tile also caps upscaling at ~6 screen px per artwork px so a small cropped cover stays sharp
+  enough. Not verified on a real barred cover on-device (the track playing during testing had
+  full-bleed art, where the trim correctly did nothing).
+
+### N.6 Phases
+
+- **P0 — Probe (device) — DONE 2026-09-21, see N.4:** with music playing, dump `dumpsys media_session`
+  for YouTube Music: which metadata keys/artwork it sets, playback actions,
+  position updates. Record results in `DECISIONS.md`.
+- **P1 — Core — DONE 2026-09-21, see N.5b:** listener service + repository + `SessionSelector` +
+  `PositionExtrapolator`; unit tests for both pure pieces. Test sources: our
+  own `PlaybackService` session and YouTube Music on the phone.
+- **P2 — UI & control — DONE 2026-09-21, see N.5c:** `NowPlayingScreen` reusing `AudioVisual`;
+  gestures → transport controls; `NotificationAccessScreen`.
+- **P3 — Background countdown alarm — DONE 2026-09-21 (notification/sound still to be verified by hand), see N.5d:** exact alarm + high-importance
+  notification (section F), since the screen will usually be off.
+- **P4 — Polish:** session override, empty/idle state ("nothing playing"),
+  a11y semantics, then decide the fate of local playback.
+
+Testing limits are unchanged: MIUI blocks injected input, so gestures and
+settings screens are verified by hand; logic is verified by unit tests and
+device logs.
