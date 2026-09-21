@@ -1,4 +1,4 @@
-# Contributing to Cadence
+# Contributing to SetBeat
 
 Thanks for looking. This is a small personal-use project, so the bar is simple: keep it small,
 keep it private, and say what you actually tested.

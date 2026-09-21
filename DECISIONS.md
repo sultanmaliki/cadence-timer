@@ -13,17 +13,23 @@ them here.
   files, and the home of the original negative-blend video look.
 - **Cleanup pass — done 2026-09-21** (`PLAN.md` N.5h): unused code, stale heap dump and intermediate
   test logs removed; nothing user-visible changed.
-- **Name and icon — DECIDED 2026-09-21: "Cadence"** (repo `cadence-timer`). Fits a timer that
-  follows the beat of the music; the icon is a progress ring around the wave hills. Package id
-  kept as `dev.fitnesstimer` so installs upgrade. **Trademark note (not legal advice):** Cadence Design Systems holds a
-  registered CADENCE mark (US Reg. No. 3474136, Class 9, software/hardware for integrated-circuit
-  design) and other unrelated CADENCE marks exist. Trademark law turns on likelihood of confusion, and
-  a free gym timer is a very different product for a different audience, so the practical risk for
-  GitHub/sideload distribution looks low, but it is not zero and rises with a store listing,
-  monetisation or popularity. Google Play's process is that an owner contacts the developer or files a
-  complaint form, which can lead to a takedown. Before any store listing: search USPTO/EUIPO/WIPO and
-  the store for the exact name, or pick a more distinctive one (renaming is cheap: app label, repo,
-  README).
+- **Name — DECIDED 2026-09-21: "SetBeat"** (repo `setbeat`), after two rejected candidates.
+  *Cadence* (used briefly) collides with Cadence Design Systems' registered CADENCE mark (US Reg. No.
+  3474136, Class 9, IC-design software). *RepBeat* (proposed by the owner) already exists as an App
+  Store workout interval timer ("Interval Timer: RepBeat") and as the workout-music app "Repbeats",
+  i.e. the same product space. Web searches for SetBeat, RepWave and BeatSet found no app with that
+  exact name (only differently named workout-music/timer apps, e.g. FitBeat). **That is a search, not a
+  trademark clearance, and not legal advice:** before any store listing, search USPTO/EUIPO/WIPO and
+  the stores for the exact name (Google Play's process on a complaint is that the owner contacts the
+  developer or files a form, which can end in a takedown). For GitHub/sideload use the practical
+  risk looks low; it rises with a store listing, money or popularity. The package id stays
+  `dev.fitnesstimer` so installs keep upgrading.
+- **Icon — DECIDED 2026-09-21:** a timer progress ring (dim track, gradient arc up to a ring thumb)
+  around the layered wave hills, on a dark indigo gradient; adaptive with a monochrome layer. It fits
+  the SetBeat name (a set's progress ring plus the beat).
+- **Banner — 2026-09-21:** `docs/banner.png` (1280x640) is used at the top of the README and is meant to
+  be the repo's GitHub "social preview". GitHub offers no API for that setting, so it is uploaded by hand
+  (repo Settings > General > Social preview).
 - **Licence — Apache-2.0 added 2026-09-21**, as `PLAN.md` section M had planned from the start.
 - **Beat-reactive wave needs `RECORD_AUDIO` — DECIDED 2026-09-21** (user asked
   for a real-time, One UI-style reactive wave). The only unprivileged way to

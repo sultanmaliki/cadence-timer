@@ -1,12 +1,12 @@
 # Project Structure
 
-The app is **Cadence** (repo `cadence-timer`); the Android package is still
+The app is **SetBeat** (repo `setbeat`; formerly *Fitness Timer*, then *Cadence*); the Android package is still
 `dev.fitnesstimer`. Living map, not a spec — update it when the structure moves.
 
 ```
-fitness-timer/
+setbeat/
 ├── README.md  PLAN.md  STRUCTURE.md  DECISIONS.md  CONTRIBUTING.md  LICENSE
-├── docs/                            # logo and README screenshots
+├── docs/                            # logo, banner (also the GitHub social preview) and README screenshots
 ├── .github/ISSUE_TEMPLATE/          # bug report template
 ├── test-logs/                       # saved unit/lint/device test run logs
 └── app/

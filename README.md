@@ -1,15 +1,13 @@
 <div align="center">
 
-<img src="docs/logo.png" alt="Cadence logo" width="128" height="128" />
-
-# Cadence
+<img src="docs/banner.png" alt="SetBeat: the gym timer that rides your music" width="100%" />
 
 **A gesture-driven gym timer for Android that rides your music.**
 
 Stopwatch and countdown on one calm screen. Whatever you're playing, in any music app, shows up
 around the timer with its artwork and a waveform that moves with the beat.
 
-[![Release](https://img.shields.io/github/v/release/sultanmaliki/cadence-timer?include_prereleases&label=release&color=8A5CF6)](https://github.com/sultanmaliki/cadence-timer/releases)
+[![Release](https://img.shields.io/github/v/release/sultanmaliki/setbeat?include_prereleases&label=release&color=8A5CF6)](https://github.com/sultanmaliki/setbeat/releases)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
 ![Android](https://img.shields.io/badge/Android-10%2B-3DDC84?logo=android&logoColor=white)
 ![Kotlin](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
@@ -21,13 +19,13 @@ around the timer with its artwork and a waveform that moves with the beat.
 
 ## Why
 
-Most timer apps are a timer with a music widget bolted on. Cadence is the other way around: **the
+Most timer apps are a timer with a music widget bolted on. SetBeat is the other way around: **the
 timer is not the interface, the media is.** The screen belongs to your music; the timer is a quiet
 layer on top of it, and you run everything with gestures so you never have to aim at a button
 mid-set.
 
 <div align="center">
-<img src="docs/screenshots/wave.png" alt="Cadence's waveform progress reacting to the music, with the timer underneath" width="560" />
+<img src="docs/screenshots/wave.png" alt="SetBeat's waveform progress reacting to the music, with the timer underneath" width="560" />
 <br />
 <sub>The wave follows the low, mid and high sounds of whatever is playing, live. Timer underneath.</sub>
 </div>
@@ -69,14 +67,14 @@ Sample footage: <i>Big Buck Bunny</i> © Blender Foundation, <a href="https://pe
 ## Install
 
 1. Download the newest `.apk` from the
-   [**Releases**](https://github.com/sultanmaliki/cadence-timer/releases) page and open it on your
+   [**Releases**](https://github.com/sultanmaliki/setbeat/releases) page and open it on your
    phone. Android will ask you to allow installs from your browser or file manager.
-2. Open Cadence and follow the card that appears: it asks for **notification access** so it can see
-   what's playing. On some phones Android says *Restricted setting*; open Cadence's App info, tap
+2. Open SetBeat and follow the card that appears: it asks for **notification access** so it can see
+   what's playing. On some phones Android says *Restricted setting*; open SetBeat's App info, tap
    ⋮ and choose *Allow restricted settings*, then try again.
 3. Optional: allow **Record audio** when offered to switch on the beat-reactive wave (see below).
 
-Cadence needs Android 10 or newer. Release builds are signed with a debug key for sideloading, so
+SetBeat needs Android 10 or newer. Release builds are signed with a debug key for sideloading, so
 an update installs over the previous one only if it uses the same key; if Android refuses, uninstall
 first.
 
@@ -107,7 +105,7 @@ There are also 30 on-device tests that drive the real gesture engine and the who
 uninstalls the app afterwards).
 
 The stack is Kotlin, Jetpack Compose and Media3, with a small hand-written gesture engine. The
-package id is still `dev.fitnesstimer` (the app was called *Fitness Timer* before it was renamed),
+package id is still `dev.fitnesstimer` (the app was called *Fitness Timer*, then *SetBeat*, before it became SetBeat),
 so that upgrades keep working.
 
 ## Project status
@@ -118,11 +116,11 @@ were also confirmed by hand. Local playback stays alongside companion mode.
 
 Not yet verified: the countdown notification's sound on a fresh permission grant, rescheduling after
 a reboot, other music apps (YouTube Music, Spotify and friends may publish less metadata), and other
-phones. The audio visualizer is known to vary by device, so Cadence shows a faint idle ripple rather
+phones. The audio visualizer is known to vary by device, so SetBeat shows a faint idle ripple rather
 than faking beats when it can't get audio.
 
 Playing YouTube links inside the app was researched and deliberately not built: YouTube's policies
-forbid overlays and background or audio-only playback on embedded players. Cadence controls the
+forbid overlays and background or audio-only playback on embedded players. SetBeat controls the
 YouTube Music app instead.
 
 ## Documentation

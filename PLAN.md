@@ -1,9 +1,9 @@
 # Technical Plan
 
-> **Naming, 2026-09-21:** the app is now called **Cadence** (repo `cadence-timer`); it was
-> "Fitness Timer" while this plan was written, so older sections and dates may still say so.
-> The Android package id stays `dev.fitnesstimer` on purpose: changing the application id would
-> stop the app upgrading over existing installs.
+> **Naming:** the app is called **SetBeat** (repo `setbeat`). While this plan was written it was
+> "Fitness Timer", and for a day "Cadence", so older sections and dates may still say so. The Android
+> package id stays `dev.fitnesstimer` on purpose: changing the application id would stop the app
+> upgrading over existing installs.
 
 Grounded in a research pass against primary Android/AOSP/Media3/Play sources
 (Sept 2026), each finding adversarially re-checked. Claims below are the
@@ -543,7 +543,7 @@ flattens when paused. Frames: ~58/s while playing (median 13 ms), 0 when paused.
 
 ### N.5f Branding and artwork polish (2026-09-21)
 
-- **Name/icon:** app label "Cadence"; new adaptive icon generated in code (Pillow): a timer
+- **Name/icon:** app label "Cadence" (later renamed SetBeat, see `DECISIONS.md`); new adaptive icon generated in code (Pillow): a timer
   progress ring (dim track, gradient arc up to a ring thumb) enclosing three translucent wave hills
   in the same hues as the in-app wave, on a dark indigo gradient. Ships as adaptive layers
   (background/foreground) plus a **monochrome layer** for Android 13+ themed icons, in every
@@ -630,8 +630,9 @@ across repeated forced track changes. The bar-trim was also seen working on a re
   the never-wired session override in `NowPlayingRepository`/`SessionSelector`, three `NowPlaying`
   capability flags only their own tests read, unused imports), the 850 MB stale heap dump, and the
   intermediate test logs (kept: the probe, alarm, stress and gesture logs).
-- **Name.** "Cadence" collides with Cadence Design Systems' registered CADENCE mark (US Reg. No.
-  3474136, Class 9, IC-design software); see `DECISIONS.md` for the assessment.
+- **Name.** "Cadence" collided with Cadence Design Systems' registered CADENCE mark; the owner then
+  proposed "RepBeat", which turned out to be an existing workout interval-timer app, so the app became
+  **SetBeat** (details and the checks made are in `DECISIONS.md`).
 
 ### N.6 Phases
 
