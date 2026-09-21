@@ -7,6 +7,11 @@ them here.
 
 ## Resolved
 
+- **Name and icon — DECIDED 2026-09-21: "Cadence"** (repo `cadence-timer`). Fits a timer that
+  follows the beat of the music; the icon is a progress ring around the wave hills. Package id
+  kept as `dev.fitnesstimer` so installs upgrade. Note: "Cadence" is also the name of an unrelated
+  software company; if the app is ever published on a store, do a trademark/name-collision check.
+- **Licence — Apache-2.0 added 2026-09-21**, as `PLAN.md` section M had planned from the start.
 - **Beat-reactive wave needs `RECORD_AUDIO` — DECIDED 2026-09-21** (user asked
   for a real-time, One UI-style reactive wave). The only unprivileged way to
   see another app's audio is `Visualizer` on the output mix, which Android
@@ -124,9 +129,11 @@ them here.
 
 ## Needs a decision, not urgent
 
-- **Artwork polish.** Mi Music's 256x144 bitmap has dark side bars baked in.
-  Options: leave as is, or auto-trim uniform borders. Not decided.
-- **Fate of local playback (video, files, playlists, ExoPlayer service).**
+- **Artwork bars — RESOLVED 2026-09-21:** auto-trim implemented (`ArtTrim.kt`, `PLAN.md`
+  N.5f). Still to see on a real barred cover.
+- **Fate of local playback (video, files, playlists, ExoPlayer service) — OPEN, awaiting the owner.**
+  Recommendation: keep it. It is built, tested and idle unless used; it is the only source for
+  offline files, and it hosts the negative-blend video look that is the app's original idea.
   Options after companion mode exists: keep as a second source, keep audio
   only, or remove. Deferred on purpose, 2026-09-21.
 - **minSdk.** Confirmed constraints: Media3 needs ≥23; `BlendMode.Difference`

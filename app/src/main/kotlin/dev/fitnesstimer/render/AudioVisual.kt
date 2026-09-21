@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Brush
@@ -39,6 +40,7 @@ import kotlinx.coroutines.delay
 import kotlin.math.sin
 
 private val ARTWORK_CORNER_RADIUS = 32.dp
+private const val MAX_UPSCALE = 6f // screen pixels per artwork pixel
 
 /**
  * Audio-mode visual (PLAN.md section H, expanded 2026-09-20): cover art at
@@ -98,8 +100,8 @@ internal fun ArtworkTile(
     if (artwork != null && artwork.width > 0 && artwork.height > 0) {
         val bitmapAspect = artwork.width.toFloat() / artwork.height.toFloat()
         val boxAspect = maxWidth / maxHeight
-        val w: Dp
-        val h: Dp
+        var w: Dp
+        var h: Dp
         if (bitmapAspect > boxAspect) {
             w = maxWidth
             h = maxWidth / bitmapAspect
@@ -107,6 +109,11 @@ internal fun ArtworkTile(
             h = maxHeight
             w = maxHeight * bitmapAspect
         }
+        // Cap the upscale so a small (e.g. trimmed) image stays reasonably sharp.
+        val density = LocalDensity.current.density
+        val capFactor = minOf(1f, MAX_UPSCALE * artwork.width / density / w.value, MAX_UPSCALE * artwork.height / density / h.value)
+        w *= capFactor
+        h *= capFactor
         Box(Modifier.size(w, h).clip(RoundedCornerShape(ARTWORK_CORNER_RADIUS))) {
             Image(
                 bitmap = artwork.asImageBitmap(),

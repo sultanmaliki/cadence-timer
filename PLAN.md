@@ -1,5 +1,10 @@
 # Technical Plan
 
+> **Naming, 2026-09-21:** the app is now called **Cadence** (repo `cadence-timer`); it was
+> "Fitness Timer" while this plan was written, so older sections and dates may still say so.
+> The Android package id stays `dev.fitnesstimer` on purpose: changing the application id would
+> stop the app upgrading over existing installs.
+
 Grounded in a research pass against primary Android/AOSP/Media3/Play sources
 (Sept 2026), each finding adversarially re-checked. Claims below are the
 conclusions; anything genuinely unresolved is called out as such rather than
@@ -535,6 +540,23 @@ permission is granted (verified: stops on Home, restarts on return).
 art-derived analogous hues, scrolling left from the thumb so the newest audio
 is at the current position, smooth curves, tapered at both ends, ring thumb,
 flattens when paused. Frames: ~58/s while playing (median 13 ms), 0 when paused.
+
+### N.5f Branding and artwork polish (2026-09-21)
+
+- **Name/icon:** app label "Cadence"; new adaptive icon generated in code (Pillow): a timer
+  progress ring (dim track, gradient arc up to a ring thumb) enclosing three translucent wave hills
+  in the same hues as the in-app wave, on a dark indigo gradient. Ships as adaptive layers
+  (background/foreground) plus a **monochrome layer** for Android 13+ themed icons, in every
+  density; the old artwork-derived launcher PNGs were removed. Not verified: how each launcher
+  (other than the test phone's system UI, where it rendered correctly) masks or themes it.
+- **Artwork bars:** `render/ArtTrim.kt` crops flat-colour bars that some apps (Mi Music) bake into
+  the sides of a portrait cover. Deliberately conservative (bars must exist on both opposite
+  sides, be one flat colour, agree in colour, and leave >= 40% of the image), unit-tested with
+  synthetic images including noisy bars and full-bleed art that must NOT be cropped. Applied once
+  per track in `NowPlayingRepository`, so the colour extraction samples the real cover too. The
+  tile also caps upscaling at ~6 screen px per artwork px so a small cropped cover stays sharp
+  enough. Not verified on a real barred cover on-device (the track playing during testing had
+  full-bleed art, where the trim correctly did nothing).
 
 ### N.6 Phases
 

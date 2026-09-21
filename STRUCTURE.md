@@ -1,11 +1,13 @@
 # Project Structure
 
-Current layout, `dev.fitnesstimer` package (as of v0.1.1), plus the planned
-v0.2 additions. Living map, not a spec — update it when the structure moves.
+The app is **Cadence** (repo `cadence-timer`); the Android package is still
+`dev.fitnesstimer`. Living map, not a spec — update it when the structure moves.
 
 ```
 fitness-timer/
-├── README.md  PLAN.md  STRUCTURE.md  DECISIONS.md
+├── README.md  PLAN.md  STRUCTURE.md  DECISIONS.md  CONTRIBUTING.md  LICENSE
+├── docs/                            # logo and README screenshots
+├── .github/ISSUE_TEMPLATE/          # bug report template
 ├── test-logs/                       # saved unit/lint/device test run logs
 └── app/
     ├── build.gradle.kts
@@ -32,6 +34,7 @@ fitness-timer/
         │       ├── render/
         │       │   ├── NegativeTimerText.kt # Difference-blend timer + hold ring (lambda inputs: draw-phase reads)
         │       │   ├── AudioVisual.kt       # artwork tile (native aspect, rounded), equalizer, timer slot
+        │       │   ├── ArtTrim.kt           # pure: find/crop flat-colour bars baked into artwork
         │       │   ├── WaveProgress.kt      # One UI-style waveform progress (companion mode)
         │       │   └── AmbientColor.kt      # scaled-frame Palette sample; bounded artwork decode; ArtColors (HSL, pure)
         │       └── ui/

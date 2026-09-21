@@ -189,8 +189,10 @@ object NowPlayingRepository {
             "${fresh.width}x${fresh.height}"
         if (key == artKey && artBitmap != null) return artBitmap
         artKey = key
-        artBitmap = fresh
-        return fresh
+        // Crop flat bars some apps bake into the sides (see ArtTrim); cached with the key.
+        val trimmed = dev.fitnesstimer.render.trimUniformBars(fresh)
+        artBitmap = trimmed
+        return trimmed
     }
 
     private var lastLogged: String? = null
