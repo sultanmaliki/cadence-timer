@@ -49,4 +49,8 @@ dependencies {
     implementation(libs.media3.common)
     implementation(libs.media3.session)
     implementation(libs.androidx.palette.ktx)
+
+    testImplementation("junit:junit:4.13.2")
+    // android.jar's org.json is a stub in JVM unit tests; use the real one.
+    testImplementation("org.json:json:20240303")
 }

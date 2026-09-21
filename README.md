@@ -23,13 +23,10 @@ ratio letterboxing with ambient background, audio-mode squarcle artwork +
 equalizer, playlists, app icon, and a `MediaSessionService` for a system
 notification with transport controls.
 
-**Currently broken: media playback itself doesn't work** (`DECISIONS.md` →
-"Blocking" has the full writeup). Three real bugs were found and fixed
-along the way (a crash on every launch, missing player-command grants, and
-a Compose `DisposableEffect` closure bug that released the controller right
-after connecting) but the core symptom — nothing plays — persists past all
-three. Diagnostic logging is in place; next session starts by reproducing
-and reading logcat for the `FitnessTimer` tag.
+Playback works on-device (fixed 2026-09-21 — see `DECISIONS.md`). Still to
+verify by hand: the SAF picker → play path end to end, the notification
+controls and timer button, and whether HyperOS surfaces the media
+notification in the Island.
 
 The gesture state machine also still needs real hands-on testing since this
 test device blocks scripted touch input (see `DECISIONS.md`).

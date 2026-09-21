@@ -64,7 +64,7 @@ private const val TAG = "FitnessTimer"
  * multi-item one — same downstream logic either way, no special-casing.
  */
 @Composable
-fun MainScreen() {
+fun MainScreen(debugUri: Uri? = null) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
 
@@ -95,7 +95,7 @@ fun MainScreen() {
         onDispose { toRelease?.release() }
     }
 
-    var queue by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var queue by remember { mutableStateOf<List<Uri>>(listOfNotNull(debugUri)) }
     var queueIndex by remember { mutableIntStateOf(0) }
     var ambientColor by remember { mutableStateOf(DEFAULT_AMBIENT) }
     var audioArtwork by remember { mutableStateOf<Bitmap?>(null) }
