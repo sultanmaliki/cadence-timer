@@ -9,6 +9,7 @@ import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -82,6 +83,16 @@ class PlaybackService : MediaSessionService() {
             session: MediaSession,
             controller: MediaSession.ControllerInfo,
         ): MediaSession.ConnectionResult {
+            // The service must be exported (system UI, Bluetooth, Android Auto
+            // connect from outside), so gate here: only our own app, the
+            // system media notification, or system-trusted controllers.
+            val allowed = controller.packageName == packageName ||
+                session.isMediaNotificationController(controller) ||
+                controller.isTrusted
+            if (!allowed) {
+                Log.w("FitnessTimer", "[service] rejected controller ${controller.packageName}")
+                return MediaSession.ConnectionResult.reject()
+            }
             // Grant everything explicitly. super.onConnect()'s result was
             // logged on-device and both its command sets hashed as EMPTY
             // (Player$Commands@0, SessionCommands@1f = empty-set hashes), so
@@ -111,7 +122,7 @@ class PlaybackService : MediaSessionService() {
                 mediaSession.setCustomLayout(listOf(timerCommandButton()))
                 return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
             }
-            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+            return Futures.immediateFuture(SessionResult(SessionError.ERROR_NOT_SUPPORTED))
         }
     }
 }

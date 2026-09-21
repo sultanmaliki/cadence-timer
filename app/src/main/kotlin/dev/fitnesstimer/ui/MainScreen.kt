@@ -63,6 +63,7 @@ private const val TAG = "FitnessTimer"
  * is treated as a one-item, unsaved queue, and a played playlist as a
  * multi-item one — same downstream logic either way, no special-casing.
  */
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun MainScreen(debugUri: Uri? = null) {
     val context = LocalContext.current
