@@ -63,16 +63,6 @@ class NowPlayingLogicTest {
         assertEquals("0", SessionSelector.select(list, own)?.id)
     }
 
-    @Test fun preferredPackageWinsAmongEquals() {
-        val list = listOf(c("0", "a", PlaybackState.STATE_PLAYING), c("1", "b", PlaybackState.STATE_PLAYING))
-        assertEquals("1", SessionSelector.select(list, own, preferredPackage = "b")?.id)
-    }
-
-    @Test fun preferredPackageDoesNotOverrideRank() {
-        val list = listOf(c("0", "a", PlaybackState.STATE_PLAYING), c("1", "b", PlaybackState.STATE_PAUSED))
-        assertEquals("0", SessionSelector.select(list, own, preferredPackage = "b")?.id)
-    }
-
     @Test fun emptyListGivesNull() = assertNull(SessionSelector.select(emptyList(), own))
 
     @Test fun seekingAndSkippingCountAsPlaying() {
@@ -112,24 +102,5 @@ class NowPlayingLogicTest {
         assertNull(progressFraction(1_000, -1))
         assertNull(progressFraction(1_000, 0))
         assertEquals(1f, progressFraction(90_000, 60_000)!!, 0.0001f)
-    }
-
-    // ---- action flags ----
-    private fun np(actions: Long) =
-        NowPlaying("p", null, null, null, null, false, -1, PlaybackState.STATE_PLAYING, 0, 0, 1f, actions)
-
-    @Test fun actionFlagsMatchMiMusicProbe() { // actions=2360319 observed on the device
-        val mi = np(2360319L)
-        assertTrue(mi.canSkipNext); assertTrue(mi.canSkipPrevious); assertTrue(mi.canSeek)
-    }
-
-    @Test fun actionFlagsMatchStaleYouTubeSession() { // actions=8615: skip-next + seek, no previous
-        val yt = np(8615L)
-        assertTrue(yt.canSkipNext); assertFalse(yt.canSkipPrevious); assertTrue(yt.canSeek)
-    }
-
-    @Test fun noActionsMeansNoCapabilities() {
-        val n = np(0L)
-        assertFalse(n.canSkipNext); assertFalse(n.canSkipPrevious); assertFalse(n.canSeek)
     }
 }

@@ -29,9 +29,6 @@ data class NowPlaying(
     val actions: Long,
 ) {
     val isPlaying: Boolean get() = isPlayingState(playbackState)
-    val canSkipNext: Boolean get() = actions and PlaybackState.ACTION_SKIP_TO_NEXT != 0L
-    val canSkipPrevious: Boolean get() = actions and PlaybackState.ACTION_SKIP_TO_PREVIOUS != 0L
-    val canSeek: Boolean get() = actions and PlaybackState.ACTION_SEEK_TO != 0L
 }
 
 /** [accessGranted] is false until the user enables notification access for this app. */

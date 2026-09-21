@@ -6,8 +6,6 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.lerp
-import androidx.compose.ui.graphics.luminance
 import androidx.palette.graphics.Palette
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -80,18 +78,6 @@ suspend fun sampleAudioArtwork(context: Context, uri: Uri): Bitmap? =
             null
         } finally {
             retriever?.release()
-        }
-    }
-
-/** Dominant color of an in-memory bitmap (e.g. another app's artwork). Off the main thread. */
-suspend fun sampleColorFromBitmap(bitmap: Bitmap, fallback: Color): Color =
-    withContext(Dispatchers.Default) {
-        try {
-            val palette = Palette.from(bitmap).generate()
-            val swatch = palette.dominantSwatch ?: palette.mutedSwatch ?: palette.darkVibrantSwatch
-            swatch?.let { Color(it.rgb) } ?: fallback
-        } catch (e: Exception) {
-            fallback
         }
     }
 

@@ -102,7 +102,7 @@ rest.
 ./gradlew lintDebug
 ```
 
-There are also 18 on-device gesture tests that drive the real gesture engine on a phone. See
+There are also 30 on-device tests that drive the real gesture engine and the whole timer flow on a phone. See
 [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to run them safely (Gradle's own connected-test task
 uninstalls the app afterwards).
 
@@ -113,7 +113,8 @@ so that upgrades keep working.
 ## Project status
 
 Built and hardened on a single phone (Xiaomi, HyperOS 3.0, Android 16) with Mi Music as the source.
-Gestures in companion mode were confirmed by hand.
+Gestures and the timer/stopwatch flows are covered by 30 on-device tests; gestures in companion mode
+were also confirmed by hand. Local playback stays alongside companion mode.
 
 Not yet verified: the countdown notification's sound on a fresh permission grant, rescheduling after
 a reboot, other music apps (YouTube Music, Spotify and friends may publish less metadata), and other

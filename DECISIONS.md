@@ -7,10 +7,23 @@ them here.
 
 ## Resolved
 
+- **Local playback — DECIDED 2026-09-21: keep it as it is** (owner). Video and audio files,
+  playlists and the ExoPlayer service stay alongside companion mode; companion mode is the default and
+  a menu entry switches sources. It is built, tested, idle unless used, the only source for offline
+  files, and the home of the original negative-blend video look.
+- **Cleanup pass — done 2026-09-21** (`PLAN.md` N.5h): unused code, stale heap dump and intermediate
+  test logs removed; nothing user-visible changed.
 - **Name and icon — DECIDED 2026-09-21: "Cadence"** (repo `cadence-timer`). Fits a timer that
   follows the beat of the music; the icon is a progress ring around the wave hills. Package id
-  kept as `dev.fitnesstimer` so installs upgrade. Note: "Cadence" is also the name of an unrelated
-  software company; if the app is ever published on a store, do a trademark/name-collision check.
+  kept as `dev.fitnesstimer` so installs upgrade. **Trademark note (not legal advice):** Cadence Design Systems holds a
+  registered CADENCE mark (US Reg. No. 3474136, Class 9, software/hardware for integrated-circuit
+  design) and other unrelated CADENCE marks exist. Trademark law turns on likelihood of confusion, and
+  a free gym timer is a very different product for a different audience, so the practical risk for
+  GitHub/sideload distribution looks low, but it is not zero and rises with a store listing,
+  monetisation or popularity. Google Play's process is that an owner contacts the developer or files a
+  complaint form, which can lead to a takedown. Before any store listing: search USPTO/EUIPO/WIPO and
+  the store for the exact name, or pick a more distinctive one (renaming is cheap: app label, repo,
+  README).
 - **Licence — Apache-2.0 added 2026-09-21**, as `PLAN.md` section M had planned from the start.
 - **Beat-reactive wave needs `RECORD_AUDIO` — DECIDED 2026-09-21** (user asked
   for a real-time, One UI-style reactive wave). The only unprivileged way to
@@ -131,11 +144,6 @@ them here.
 
 - **Artwork bars — RESOLVED 2026-09-21:** auto-trim implemented (`ArtTrim.kt`, `PLAN.md`
   N.5f). Still to see on a real barred cover.
-- **Fate of local playback (video, files, playlists, ExoPlayer service) — OPEN, awaiting the owner.**
-  Recommendation: keep it. It is built, tested and idle unless used; it is the only source for
-  offline files, and it hosts the negative-blend video look that is the app's original idea.
-  Options after companion mode exists: keep as a second source, keep audio
-  only, or remove. Deferred on purpose, 2026-09-21.
 - **minSdk.** Confirmed constraints: Media3 needs ≥23; `BlendMode.Difference`
   needs ≥29 (silent no-op fallback below that); some haptic constants need
   ≥34. No device-reach data available locally — pick a floor once that's
@@ -147,9 +155,6 @@ them here.
   the app is unusable with it on unless gestures are mirrored as semantic
   actions. Worth doing given how cheap it is relative to the gesture engine
   already being built, but not decided.
-- **Exact-alarm permission choice.** `USE_EXACT_ALARM` (auto-granted,
-  Play-restricted to genuine alarm/timer apps) vs. `SCHEDULE_EXACT_ALARM`
-  (user-grant flow, works regardless of Play's judgment of "core function").
 
 ## Needs external verification (not answerable from docs)
 

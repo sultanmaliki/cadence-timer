@@ -29,7 +29,7 @@ class TimerGesturesInstrumentedTest {
     private class Counts {
         var timerToggle = 0; var mediaToggle = 0; var next = 0; var prev = 0
         var seekBack = 0; var seekForward = 0; var scrubs = 0; var topLeft = 0; var topRight = 0
-        var resets = 0; var paused = false; var maxRing = 0f
+        var resets = 0; var paused = false; var maxRing = 0f; var lastRing = -1f
     }
 
     private fun show(c: Counts) {
@@ -37,7 +37,7 @@ class TimerGesturesInstrumentedTest {
             isPaused = { c.paused }, // false by default: keeps most tests about taps/swipes, not the reset ring
             onTogglePause = { c.timerToggle++ },
             onReset = { c.resets++ },
-            onHoldProgress = { c.maxRing = maxOf(c.maxRing, it) },
+            onHoldProgress = { c.maxRing = maxOf(c.maxRing, it); c.lastRing = it },
             onSeekBack = { c.seekBack++ },
             onSeekForward = { c.seekForward++ },
             onScrub = { c.scrubs++ },
@@ -48,6 +48,17 @@ class TimerGesturesInstrumentedTest {
             onMediaSourcePicker = { c.topRight++ },
         )
         rule.setContent { Box(Modifier.fillMaxSize().timerGestures(actions)) }
+    }
+
+    /** Real time and Compose's virtual clock pass together in small steps, like a finger held down. */
+    private fun waitReal(ms: Long) {
+        var left = ms
+        while (left > 0) {
+            val step = minOf(50L, left)
+            Thread.sleep(step); rule.mainClock.advanceTimeBy(step)
+            left -= step
+        }
+        rule.waitForIdle()
     }
 
     private val a = Offset(300f, 900f)
@@ -190,9 +201,7 @@ class TimerGesturesInstrumentedTest {
         rule.onRoot().performTouchInput { down(0, Offset(550f, 1200f)) }
         // The engine measures the hold in REAL time (SystemClock) but wakes on coroutine timeouts, which run on
         // Compose's virtual test clock: pass real time AND tick the virtual clock.
-        Thread.sleep(1000)
-        rule.mainClock.advanceTimeBy(1500)
-        rule.waitForIdle()
+        waitReal(1000)
         rule.onRoot().performTouchInput { up(0) }
         rule.waitForIdle()
         assertEquals("resets", 1, c.resets); assertEquals("timer toggles", 0, c.timerToggle)
@@ -201,7 +210,7 @@ class TimerGesturesInstrumentedTest {
     @Test fun releasingTheHoldEarlyDoesNotReset() {
         val c = Counts(); c.paused = true; show(c)
         rule.onRoot().performTouchInput { down(0, Offset(550f, 1200f)) }
-        Thread.sleep(300)
+        waitReal(300)
         rule.onRoot().performTouchInput { up(0) }
         rule.waitForIdle()
         assertEquals("resets", 0, c.resets); assertEquals("timer toggles", 1, c.timerToggle)   // a normal tap
@@ -210,9 +219,9 @@ class TimerGesturesInstrumentedTest {
     @Test fun aSecondFingerDuringTheHoldCancelsTheReset() {
         val c = Counts(); c.paused = true; show(c)
         rule.onRoot().performTouchInput { down(0, Offset(550f, 1200f)) }
-        Thread.sleep(300)
+        waitReal(300)
         rule.onRoot().performTouchInput { down(1, Offset(750f, 1200f)) }
-        Thread.sleep(900)                        // well past the 0.8 s hold
+        waitReal(900)                            // well past the 0.8 s hold
         rule.onRoot().performTouchInput { up(0); up(1) }
         rule.waitForIdle()
         assertEquals("resets", 0, c.resets); assertEquals("media toggles", 1, c.mediaToggle)
@@ -223,5 +232,44 @@ class TimerGesturesInstrumentedTest {
         rule.onRoot().performTouchInput { down(0, Offset(200f, 900f)); down(1, Offset(600f, 900f)); down(2, Offset(1000f, 900f)); advanceEventTime(40); up(2); up(0); up(1) }
         rule.waitForIdle()
         assertEquals(1, c.mediaToggle); assertEquals(0, c.next + c.prev)
+    }
+
+    @Test fun earlyReleaseClearsTheRingInsteadOfLeavingItStuck() {
+        // The reported bug: a partial ring stayed on screen after releasing before the hold completed.
+        val c = Counts(); c.paused = true; show(c)
+        rule.onRoot().performTouchInput { down(0, Offset(550f, 1200f)) }
+        waitReal(450)                                             // ring partly charged
+        rule.onRoot().performTouchInput { up(0) }
+        rule.waitForIdle()
+        assertEquals("ring ended at", 0f, c.lastRing, 0f)
+        assertEquals("resets", 0, c.resets)
+    }
+
+    @Test fun completedResetShowsFullThenClearsWhenTheFingerLifts() {
+        val c = Counts(); c.paused = true; show(c)
+        rule.onRoot().performTouchInput { down(0, Offset(550f, 1200f)) }
+        waitReal(1000)
+        assertEquals("resets", 1, c.resets); assertEquals("ring was full", 1f, c.maxRing, 0f)
+        assertEquals("ring stays full while the finger is down", 1f, c.lastRing, 0f)
+        rule.onRoot().performTouchInput { up(0) }
+        rule.waitForIdle()
+        assertEquals("ring cleared after lift", 0f, c.lastRing, 0f)
+    }
+
+    @Test fun ringIsClearedAfterAnOrdinaryTapWhilePaused() {
+        val c = Counts(); c.paused = true; show(c)
+        rule.onRoot().performTouchInput { down(0, Offset(550f, 1200f)); advanceEventTime(40); up(0) }
+        rule.waitForIdle()
+        assertEquals(0f, c.lastRing, 0f); assertEquals(1, c.timerToggle)
+    }
+
+    @Test fun ringIsClearedWhenAFingerDragsAwayFromAHold() {
+        val c = Counts(); c.paused = true; show(c)
+        rule.onRoot().performTouchInput { down(0, Offset(550f, 1200f)) }
+        waitReal(300)
+        rule.onRoot().performTouchInput { repeat(6) { moveBy(0, Offset(30f, 0f)) } }
+        rule.onRoot().performTouchInput { up(0) }
+        rule.waitForIdle()
+        assertEquals(0f, c.lastRing, 0f); assertEquals(0, c.resets)
     }
 }

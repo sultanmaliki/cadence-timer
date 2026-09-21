@@ -188,6 +188,10 @@ fun Modifier.timerGestures(actions: TimerGestureActions): Modifier = this.pointe
             if (pressed.isEmpty()) break
         }
 
+        // A completed reset keeps the full ring visible until the finger lifts (a clear "it fired"),
+        // instead of returning immediately while the finger is still down.
+        if (resetFired) waitForUpOrCancellation()
+
         when (mode) {
             Mode.TWO_FINGER -> when (twoFinger.result(swipeMinPx)) {
                 TwoFingerResult.PREVIOUS -> actions.onSkipPrevious()
@@ -214,5 +218,10 @@ fun Modifier.timerGestures(actions: TimerGestureActions): Modifier = this.pointe
                 }
             }
         }
+
+        // Every gesture ends with the ring cleared. It used to be cleared only when a drag or second
+        // finger took over, so an early release left a partial ring on screen and a completed reset
+        // left a full circle stuck there.
+        actions.onHoldProgress(0f)
     }
 }

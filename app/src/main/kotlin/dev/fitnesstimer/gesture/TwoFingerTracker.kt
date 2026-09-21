@@ -35,8 +35,6 @@ class TwoFingerTracker {
         } // a lift event's position is ignored: the finger's displacement stays frozen
     }
 
-    val pointerCount: Int get() = tracks.size
-
     fun averageDx(): Float = if (tracks.isEmpty()) 0f else tracks.values.map { it.lastX - it.startX }.average().toFloat()
     fun averageDy(): Float = if (tracks.isEmpty()) 0f else tracks.values.map { it.lastY - it.startY }.average().toFloat()
 

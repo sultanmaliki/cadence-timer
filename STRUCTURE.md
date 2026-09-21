@@ -21,6 +21,7 @@ fitness-timer/
         │       │   ├── ScrubAccumulator.kt  # coalesces drag-scrub seeks (~10/s) + trailing flush
         │       │   └── TwoFingerTracker.kt  # pure: per-pointer-id tap vs swipe decision (fixes lift-order false swipes)
         │       ├── timer/
+        │       │   ├── CountdownInput.kt    # pure: parse "mm:ss" / "h:mm:ss" for the countdown dialog (capped 99:59:59)
         │       │   ├── CountdownAlarm.kt    # pure alarmDelayMs + AlarmManager scheduling + finished notification
         │       │   ├── CountdownAlarmReceivers.kt  # alarm + BOOT_COMPLETED receivers
         │       │   ├── TimerEngine.kt       # elapsedRealtime basis, stopwatch + countdown, snapshot/restore, tick scheduling
@@ -41,7 +42,8 @@ fitness-timer/
         │       └── ui/
         │           ├── MainScreen.kt        # mirrors player state from a MediaController; wires everything
         │           ├── MediaSourceMenu.kt  PlaylistScreen.kt  TimerModeMenu.kt
-        └── test/kotlin/dev/fitnesstimer/    # JVM unit tests (timer, scrub, playlist repo, image sizing)
+        ├── test/kotlin/dev/fitnesstimer/    # JVM unit tests (timer, alarm, gestures, audio bands, selection, colours, playlists, art trim)
+        └── androidTest/kotlin/dev/fitnesstimer/   # on-device Compose tests: gesture engine (22) + full timer flow via MainScreen (8)
 ```
 
 ## v0.2 - companion mode (see `PLAN.md` section N); P1 core and P2 UI built

@@ -36,7 +36,6 @@ object NowPlayingRepository {
     private var manager: MediaSessionManager? = null
     private var component: ComponentName? = null
     private var listening = false
-    private var preferredPackage: String? = null
 
     private var controllers: List<MediaController> = emptyList()
     private var current: MediaController? = null
@@ -80,12 +79,6 @@ object NowPlayingRepository {
             grace.reset()
             publish(NowPlayingState(accessGranted = false))
         }
-    }
-
-    /** User override: prefer this app's session when several are equally active. */
-    fun setPreferredPackage(pkg: String?) {
-        preferredPackage = pkg
-        recompute()
     }
 
     // ---- controls: forwarded to the source app; it may ignore them (actions are advisory) ----
@@ -150,7 +143,7 @@ object NowPlayingRepository {
         val candidates = controllers.mapIndexed { i, c ->
             SessionCandidate(i.toString(), c.packageName, c.playbackState?.state ?: PlaybackState.STATE_NONE)
         }
-        val chosen = SessionSelector.select(candidates, ctx.packageName, preferredPackage)
+        val chosen = SessionSelector.select(candidates, ctx.packageName)
         current = chosen?.let { controllers[it.id.toInt()] }
         val now = SystemClock.elapsedRealtime()
         val fresh = current?.let { toNowPlaying(it) }

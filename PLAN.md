@@ -214,12 +214,12 @@ convention, not a documented Android formula.
 2. ~~Timer engine~~ — done: stopwatch + countdown + mode picker; persisted across process death (v0.1.1). Countdown completion is still foreground-only — the background alarm is pulled into v0.2 (section N.6).
 3. ~~Gesture engine~~ — done as one unified state machine (`gesture/TimerGestures.kt`), skipped the "isolated against a dummy timer" staging and went straight to full integration (step 5) since the timer engine was quick to build alongside it.
 4. ~~Local media playback~~ — done and hardened by v0.1.1: `MediaSessionService` + `MediaController`, player-owned queue (playlists, next/prev/auto-advance), notification controls incl. a timer button, audio focus/noisy/wake lock, unplayable-file skipping. SAF grants are persisted (safely) and released on playlist delete.
-5. ~~Full-screen integration~~ — done: timer + local media + gestures + ambient/aspect-ratio all on one screen (`ui/MainScreen.kt`), 2026-09-20. Manual on-device gesture testing is the user's, not automated — MIUI's ADB security policy blocks synthetic `input tap`/`swipe` on the test device (`SecurityException: Injecting input events requires INJECT_EVENTS permission`), so the gesture priority/timing design in section E hasn't been script-verified, only compiled and smoke-tested (app runs, doesn't crash, a hold-to-reset ring was observed rendering correctly during a real touch).
+5. ~~Full-screen integration~~ — done: timer + local media + gestures + ambient/aspect-ratio all on one screen (`ui/MainScreen.kt`), 2026-09-20. The gesture priority/timing design in section E was first only hand-tested (MIUI blocks `adb shell input`); it is now covered by on-device Compose tests that dispatch touches straight into the app (30 tests, section N.5g/N.5h).
 6. ~~Third-party MediaSession integration~~ — promoted to the v0.2 headline
    feature (section N), including the restricted-settings onboarding flow.
 7. ~~Online stream source~~ — dropped from v1, 2026-09-20 (see `DECISIONS.md`).
-8. Source-picker UI (manual, persists until changed), polish, accessibility
-   semantics layer.
+8. ~~Source-picker~~ — done as a top-right menu (Now playing / choose file / playlists). Still open:
+   polish and the accessibility semantics layer (`DECISIONS.md`).
 9. Packaging — F-Droid metadata, Play submission groundwork if desired
    (including the Play Console policy check from section B).
 
@@ -231,8 +231,8 @@ with native-aspect-ratio + ambient-color letterboxing, CD/artwork audio
 rendering, full gesture system, manual persistent source picker, local
 notification-based countdown alert.
 
-**v0.2 addition:** companion mode (section N). Whether local playback stays
-is an open decision (`DECISIONS.md`); until decided, nothing is removed.
+**v0.2 addition:** companion mode (section N). Local playback **stays as it is** (decided
+2026-09-21, `DECISIONS.md`).
 
 **Out:** workout tracking, reps/sets, calories, social features, AI
 features, accounts, cloud sync, stats/dashboards, interval sequencing beyond
@@ -609,6 +609,30 @@ flashed "Nothing playing" and restarted the audio capture. `NullGrace` now holds
 across repeated forced track changes. The bar-trim was also seen working on a real barred cover
 (256x144 -> 146x144).
 
+### N.5h Timer and stopwatch pass, stuck-ring fix, cleanup (2026-09-21)
+
+- **Stuck hold-to-reset ring (owner report).** The gesture engine reported hold progress while the
+  finger was held but never reported it back to 0 on release, so an early release left a partial ring
+  and a completed reset left a full circle on screen. Every gesture now ends by clearing the ring, and
+  a completed reset keeps the full ring visible until the finger lifts. Covered by on-device tests
+  (early release, completed reset, ordinary tap while paused, drag away from a hold).
+- **Countdown input.** `parseCountdown` (pure, unit-tested) replaces a private parser that gave no
+  feedback on bad input and could overflow to a garbage target with a huge number of minutes. Accepts
+  `mm:ss` and `h:mm:ss`, digits only, seconds/minutes < 60, capped at 99:59:59; the dialog now shows
+  an error message.
+- **End-to-end timer tests on a device** (`TimerFlowInstrumentedTest`, 8 tests through the real
+  `MainScreen`): stopwatch start/pause/resume totals, hold-to-reset only while paused, holding while
+  running does not reset, a countdown running to zero and stopping, a finished countdown restarting only
+  after a reset, 21 rapid taps ending in the right state, switching mode while running, and state saved
+  on every transition. The first version was flaky because it slept in real time and then jumped the
+  virtual clock; time now passes on both together. 3 of 3 full runs of all 30 on-device tests pass.
+- **Cleanup:** removed code nothing used (`sampleColorFromBitmap`, `TwoFingerTracker.pointerCount`,
+  the never-wired session override in `NowPlayingRepository`/`SessionSelector`, three `NowPlaying`
+  capability flags only their own tests read, unused imports), the 850 MB stale heap dump, and the
+  intermediate test logs (kept: the probe, alarm, stress and gesture logs).
+- **Name.** "Cadence" collides with Cadence Design Systems' registered CADENCE mark (US Reg. No.
+  3474136, Class 9, IC-design software); see `DECISIONS.md` for the assessment.
+
 ### N.6 Phases
 
 - **P0 — Probe (device) — DONE 2026-09-21, see N.4:** with music playing, dump `dumpsys media_session`
@@ -621,9 +645,10 @@ across repeated forced track changes. The bar-trim was also seen working on a re
   gestures → transport controls; `NotificationAccessScreen`.
 - **P3 — Background countdown alarm — DONE 2026-09-21 (notification/sound still to be verified by hand), see N.5d:** exact alarm + high-importance
   notification (section F), since the screen will usually be off.
-- **P4 — Polish:** session override, empty/idle state ("nothing playing"),
-  a11y semantics, then decide the fate of local playback.
+- **P4 — Polish — MOSTLY DONE:** empty/idle state ("nothing playing") done; the fate of local
+  playback is decided (keep). Still open: accessibility semantics. A per-app session override was
+  dropped as unused code (the selector and repository no longer carry it; re-add only if wanted).
 
-Testing limits are unchanged: MIUI blocks injected input, so gestures and
-settings screens are verified by hand; logic is verified by unit tests and
-device logs.
+Testing: `adb shell input` and permission grants are blocked on the test phone (MIUI), but gestures
+and the whole timer flow are tested on-device with Compose's own test framework (N.5g/N.5h);
+permission dialogs, the Settings toggle and the countdown notification still need hands.

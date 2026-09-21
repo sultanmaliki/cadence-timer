@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -24,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import dev.fitnesstimer.timer.parseCountdown
 
 /**
  * PLAN.md section E's "top-left tap = timer mode picker", finally wired up.
@@ -80,13 +80,19 @@ fun TimerModeMenu(
                 OutlinedTextField(
                     value = durationInput,
                     onValueChange = { durationInput = it },
-                    label = { Text("mm:ss") },
+                    label = { Text("mm:ss  or  h:mm:ss") },
                     singleLine = true,
+                    isError = durationInput.isNotEmpty() && parseCountdown(durationInput).let { it == null || it <= 0 },
+                    supportingText = {
+                        if (durationInput.isNotEmpty() && parseCountdown(durationInput).let { it == null || it <= 0 }) {
+                            Text("Enter a length like 25:00 or 1:30:00 (up to 99:59:59)")
+                        }
+                    },
                 )
             },
             confirmButton = {
                 TextButton(onClick = {
-                    val targetMs = parseMmSs(durationInput)
+                    val targetMs = parseCountdown(durationInput)
                     if (targetMs != null && targetMs > 0) {
                         showDurationDialog = false
                         onChooseCountdown(targetMs)
@@ -98,13 +104,4 @@ fun TimerModeMenu(
             },
         )
     }
-}
-
-private fun parseMmSs(input: String): Long? {
-    val parts = input.trim().split(":")
-    if (parts.size != 2) return null
-    val minutes = parts[0].toLongOrNull() ?: return null
-    val seconds = parts[1].toLongOrNull() ?: return null
-    if (seconds !in 0..59) return null
-    return (minutes * 60 + seconds) * 1000
 }
