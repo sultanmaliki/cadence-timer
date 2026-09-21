@@ -107,6 +107,8 @@ them here.
 
 ## Needs a decision, not urgent
 
+- **Artwork polish.** Mi Music's 256x144 bitmap has dark side bars baked in.
+  Options: leave as is, or auto-trim uniform borders. Not decided.
 - **Fate of local playback (video, files, playlists, ExoPlayer service).**
   Options after companion mode exists: keep as a second source, keep audio
   only, or remove. Deferred on purpose, 2026-09-21.

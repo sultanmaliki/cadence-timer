@@ -37,7 +37,7 @@ fitness-timer/
         └── test/kotlin/dev/fitnesstimer/    # JVM unit tests (timer, scrub, playlist repo, image sizing)
 ```
 
-## v0.2 — companion mode (see `PLAN.md` section N); P1 core built, UI (P2) still planned
+## v0.2 - companion mode (see `PLAN.md` section N); P1 core and P2 UI built
 
 ```
         ├── nowplaying/                       # BUILT (P1)
@@ -47,11 +47,13 @@ fitness-timer/
         │   ├── PositionExtrapolator.kt       # pure: position + elapsed * speed
         │   └── NowPlaying.kt                 # data class (title, artist, album, artwork, position, state, actions)
         └── ui/
-            ├── NowPlayingScreen.kt           # reuses render/AudioVisual + title/artist text + timer
-            └── NotificationAccessScreen.kt   # onboarding + restricted-settings guidance
+            └── CompanionScreen.kt            # BUILT: CompanionBody (reuses render/AudioVisual + title/artist + timer),
+                                              # progress line, NotificationAccessCard (onboarding overlay)
 ```
 
 Notes:
+- `ui/MainScreen.kt` holds the source mode (companion vs local) and routes gestures per
+  mode; `ui/MediaSourceMenu.kt` has the "Now playing (other apps)" entry.
 - The player (via `MediaController`) remains the single source of truth for
   local playback. Companion mode adds a second, independent source of the
   same shape; the fate of local playback is an open decision

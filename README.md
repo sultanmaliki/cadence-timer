@@ -26,8 +26,9 @@ real player-owned queue, app icon, and a media notification with
 previous / play-pause / next and a timer pause/resume button. Automated:
 41 JVM unit tests, lint clean; run logs in `test-logs/`.
 
-**Next: v0.2 — companion mode** (decided 2026-09-21, see `PLAN.md` section
-N): the app shows and controls whatever audio another app (YouTube Music,
+**In progress: v0.2 — companion mode** (decided 2026-09-21; core and screen
+built and checked on-device with Mi Music, not yet released — see `PLAN.md`
+section N): the app shows and controls whatever audio another app (YouTube Music,
 Spotify, ...) is playing — title, artwork, equalizer animation, plus the
 timer — while the music plays in the source app. Playing YouTube links
 inside the app was researched and rejected: YouTube's policies forbid
