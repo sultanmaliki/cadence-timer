@@ -66,28 +66,78 @@ Sample footage: <i>Big Buck Bunny</i> © Blender Foundation, <a href="https://pe
 
 ## Install
 
-1. Download the newest `.apk` from the
-   [**Releases**](https://github.com/sultanmaliki/setbeat/releases) page and open it on your
-   phone. Android will ask you to allow installs from your browser or file manager.
-2. Open SetBeat and follow the card that appears: it asks for **notification access** so it can see
-   what's playing. On some phones Android says *Restricted setting*; open SetBeat's App info, tap
-   ⋮ and choose *Allow restricted settings*, then try again.
-3. Optional: allow **Record audio** when offered to switch on the beat-reactive wave (see below).
+SetBeat comes in **three editions** from the [Releases](https://github.com/sultanmaliki/setbeat/releases)
+page. They exist because of one specific problem: Android's audio visualizer (the API behind the
+beat-reactive wave) cannot see audio that a music app plays through a battery-saving hardware decode
+path, and there's no reliable way to detect or work around that from outside the app (confirmed
+on-device across multiple real apps — see `DECISIONS.md`). Standalone and Full sidestep this
+honestly (no wave, or a wave that tells you when it can't get real data); Vibes chooses to look good
+over being accurate. Pick by what you need:
 
-SetBeat needs Android 10 or newer. Release builds are signed with a debug key for sideloading, so
-an update installs over the previous one only if it uses the same key; if Android refuses, uninstall
-first.
+| Edition | Download | What you get | Where it installs |
+|---|---|---|---|
+| **Standalone** | `setbeat-standalone-vX.Y.Z.apk` | Stopwatch and countdown, gestures, local video and audio with the negative-blend timer, playlists, background countdown alarm | **Any phone**, straight from your browser or a file manager |
+| **Full** | `setbeat-full-vX.Y.Z.apk` | Everything in Standalone **plus** companion mode (shows and controls what other music apps play) and the beat-reactive wave, driven by real audio when Android will allow it, with an honest explanation when it won't | Needs one extra step on some phones, see below |
+| **Vibes** | `setbeat-vibes-vX.Y.Z.apk` | Everything in Full **except** the wave isn't real: it's a procedural animation (a steady pulse plus motion on the other bands) that always looks alive, regardless of what's actually playing. No Record audio permission at all — the wave doesn't read anything. | Same as Full |
+
+**Standalone:** download, open, allow installs from your browser or file manager, done. It asks for
+no sensitive permissions.
+
+**Full:** open it, and follow the card that appears. It asks for **notification access** so it can see
+what's playing. On some phones Android says *Restricted setting*; open SetBeat's App info, tap ⋮ and
+choose *Allow restricted settings*, then try again. Optionally allow **Record audio** when offered to
+switch on the beat wave (see below).
+
+**Vibes:** same install and notification-access steps as Full, but it never asks for Record audio —
+there's nothing real for it to read. If you'd rather see an honest "not reacting" message than a wave
+that's just performing, use Full instead.
+
+### "App blocked to protect your device" (Google Play Protect)
+
+If you try to install the **Full** or **Vibes** edition and Google Play Protect says *"This app can
+request access to sensitive data"* with only an **OK** button, that is not a bug and not malware
+detection. In some markets (Google has piloted it in India, Singapore, Thailand and Brazil), Play
+Protect automatically blocks apps installed from a browser, messaging app or file manager if they ask
+for one of four sensitive permissions: reading SMS, accessibility control, or **notification access**.
+Fraud apps abuse those to steal one-time passwords. Companion mode (in both Full and Vibes) needs
+notification access — it is the only way Android lets an app see what another app is playing — and it
+only reads media playback info.
+
+What you can do:
+- **Install the Standalone edition instead.** It does not declare any of those permissions, so Play
+  Protect does not block it.
+- Install the Full or Vibes edition with `adb` from a computer (Play Protect's block applies to installs
+  from browsers, messaging apps and file managers): `adb install setbeat-full-vX.Y.Z.apk`.
+- Pausing Play Protect's scanning lets the install through, but it lowers your phone's protection while
+  paused, so we do not recommend it.
+- A Google Play listing would avoid the block entirely; it is not published there yet.
+
+### Verify the download
+Releases are signed with SetBeat's own key. To check that an APK is genuine, its signing certificate's
+SHA-256 fingerprint must be:
+
+```
+23:79:00:8C:6B:C1:D0:15:77:63:FD:A5:D3:23:4B:51:3E:A5:78:55:1E:A9:5E:5D:8E:3B:17:5D:13:DF:B8:6A
+```
+
+(`apksigner verify --print-certs setbeat-standalone-vX.Y.Z.apk` prints it as lowercase hex without
+colons.) Each release also lists the SHA-256 checksum of every APK. **Upgrading note:** versions before
+0.3.0 were signed with a shared debug key; Android will not update across a signing-key change, so if
+the install is refused, uninstall the old version first (its playlists and timer are removed).
+
+SetBeat needs Android 10 or newer.
 
 ## What it asks for, and why
 
 | Permission | Used for | Notes |
 |---|---|---|
-| Notification access | Reading what other apps are playing (title, artwork, progress) and controlling them | Reads **media sessions only**. It never reads your notifications. |
-| Record audio (+ Modify audio settings) | Android's audio visualizer, to measure low/mid/high loudness for the wave | Optional. The microphone is **not** used; nothing is recorded, stored or sent. Android simply gates the visualizer behind this permission. |
-| Exact alarms, boot completed | Ringing when a countdown ends, and re-arming it after a reboot | |
-| Notifications | The "Time's up" alert | Asked when you pick a countdown. |
+| Notification access | Reading what other apps are playing (title, artwork, progress) and controlling them | **Full and Vibes only.** Reads **media sessions only**. It never reads your notifications. |
+| Record audio (+ Modify audio settings) | Android's audio visualizer, to measure low/mid/high loudness for the wave | **Full edition only**, optional. The microphone is **not** used; nothing is recorded, stored or sent. Android simply gates the visualizer behind this permission. Vibes doesn't ask for this at all — its wave doesn't read anything real. |
+| Exact alarms, boot completed | Ringing when a countdown ends, and re-arming it after a reboot | All three editions. |
+| Notifications | The "Time's up" alert | All three editions. Asked when you pick a countdown. |
 
-There is no internet permission at all.
+There is no internet permission at all. The Standalone edition has none of the permissions above
+marked "Full and Vibes only" or "Full edition only".
 
 ## Build from source
 
@@ -95,17 +145,21 @@ You need Android Studio (its bundled JDK is fine) and an Android SDK; the Gradle
 rest.
 
 ```bash
-./gradlew assembleDebug           # debug APK in app/build/outputs/apk/debug
-./gradlew testDebugUnitTest       # 100+ JVM unit tests
-./gradlew lintDebug
+./gradlew assembleFullDebug assembleStandaloneDebug assembleVibesDebug   # debug APKs in app/build/outputs/apk/<edition>/debug
+./gradlew testFullDebugUnitTest testStandaloneDebugUnitTest testVibesDebugUnitTest   # 100+ JVM unit tests per edition
+./gradlew lintFullDebug lintStandaloneDebug lintVibesDebug
+./gradlew assembleFullRelease assembleStandaloneRelease assembleVibesRelease         # release APKs
 ```
+
+Release builds are signed with a private key read from a gitignored `keystore.properties`; without it
+(a fresh clone) they fall back to the debug key so they still build.
 
 There are also 30 on-device tests that drive the real gesture engine and the whole timer flow on a phone. See
 [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to run them safely (Gradle's own connected-test task
 uninstalls the app afterwards).
 
 The stack is Kotlin, Jetpack Compose and Media3, with a small hand-written gesture engine. The
-package id is still `dev.fitnesstimer` (the app was called *Fitness Timer*, then *SetBeat*, before it became SetBeat),
+package id is still `dev.fitnesstimer` (the app was called *Fitness Timer*, then *Cadence*, before it became SetBeat),
 so that upgrades keep working.
 
 ## Project status

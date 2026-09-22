@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Whether this edition includes companion mode (see app/build.gradle.kts). -->
+    <bool name="companion_enabled">false</bool>
+    <bool name="fake_wave">false</bool>
+</resources>

@@ -40,6 +40,7 @@ import androidx.media3.common.Tracks
 import androidx.media3.session.MediaController
 import androidx.media3.ui.compose.ContentFrame
 import androidx.media3.ui.compose.SURFACE_TYPE_TEXTURE_VIEW
+import dev.fitnesstimer.R
 import dev.fitnesstimer.gesture.ScrubAccumulator
 import dev.fitnesstimer.gesture.TimerGestureActions
 import dev.fitnesstimer.gesture.timerGestures
@@ -47,6 +48,7 @@ import dev.fitnesstimer.media.connectMediaController
 import dev.fitnesstimer.media.tryPersistReadGrant
 import dev.fitnesstimer.nowplaying.AudioLevelSource
 import dev.fitnesstimer.nowplaying.NowPlayingRepository
+import dev.fitnesstimer.nowplaying.isBluetoothAudioOutputActive
 import dev.fitnesstimer.nowplaying.POSITION_UNKNOWN
 import dev.fitnesstimer.nowplaying.positionNow
 import dev.fitnesstimer.render.AudioVisual
@@ -132,7 +134,12 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
 
     // Source mode (PLAN.md N): COMPANION shows what another app is playing;
     // otherwise the local player is shown. Survives Activity recreation.
-    var companionMode by rememberSaveable { mutableStateOf(debugUris.isEmpty()) }
+    // The standalone edition has no companion mode at all (see app/build.gradle.kts).
+    val companionAvailable = remember { context.resources.getBoolean(R.bool.companion_enabled) }
+    // LOCAL EXPERIMENT (DECISIONS.md, not distributed): this edition has no RECORD_AUDIO permission,
+    // so it must never show the real-capture permission/hint UI and the wave is always the fake one.
+    val fakeWave = remember { context.resources.getBoolean(R.bool.fake_wave) }
+    var companionMode by rememberSaveable { mutableStateOf(companionAvailable && debugUris.isEmpty()) }
     var accessCardDismissed by rememberSaveable { mutableStateOf(false) }
     val nowPlayingState by NowPlayingRepository.state.collectAsState()
     var companionColors by remember { mutableStateOf(DEFAULT_ART_COLORS) }
@@ -233,10 +240,14 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         Log.d(TAG, "RECORD_AUDIO granted=$granted")
         AudioLevelSource.refreshPermission(context)
     }
+    val vizStatus by AudioLevelSource.status.collectAsState()
+    var silentHintDismissed by remember { mutableStateOf(prefs.getBoolean("beat_silent_hint_dismissed", false)) }
     val companionPlaying = companionMode && nowPlayingState.nowPlaying?.isPlaying == true
     // Debounced off: sources report a brief "buffering"/skipping state at track changes, and
     // stopping/restarting the capture each time reset the analysis and briefly blanked the wave.
-    LaunchedEffect(companionPlaying) {
+    // Skipped entirely for the fake-wave edition, which has no RECORD_AUDIO permission to use.
+    LaunchedEffect(companionPlaying, fakeWave) {
+        if (fakeWave) return@LaunchedEffect
         if (companionPlaying) {
             AudioLevelSource.setWanted(true)
         } else {
@@ -398,6 +409,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
                 colors = companionColors,
                 timerText = { formatElapsed(timer.displayMs) },
                 holdProgress = { holdProgress },
+                fakeWave = fakeWave,
             )
             hasMedia && isAudioOnly -> {
                 // Timer goes BELOW the artwork here (AudioVisual's slot),
@@ -448,7 +460,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         }
     }
 
-    if (companionMode && nowPlayingState.accessGranted && nowPlayingState.nowPlaying != null &&
+    if (!fakeWave && companionMode && nowPlayingState.accessGranted && nowPlayingState.nowPlaying != null &&
         !recordGranted && !beatCardDismissed
     ) {
         BeatAccessCard(
@@ -464,6 +476,19 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         NotificationAccessCard(onDismiss = { accessCardDismissed = true })
     }
 
+    if (!fakeWave && companionMode && recordGranted && companionPlaying &&
+        vizStatus == AudioLevelSource.Status.SILENT && !silentHintDismissed
+    ) {
+        val bluetoothActive = remember(vizStatus) { isBluetoothAudioOutputActive(context) }
+        BeatSilentHintCard(
+            bluetoothActive = bluetoothActive,
+            onDismiss = {
+                silentHintDismissed = true
+                prefs.edit().putBoolean("beat_silent_hint_dismissed", true).apply()
+            },
+        )
+    }
+
     if (!companionMode) playbackError?.let { msg ->
         Box(Modifier.fillMaxSize().padding(bottom = 48.dp), contentAlignment = Alignment.BottomCenter) {
             Text(msg, color = Color.White)
@@ -472,6 +497,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
 
     if (showSourceMenu) {
         MediaSourceMenu(
+            showNowPlaying = companionAvailable,
             onDismiss = { showSourceMenu = false },
             onNowPlaying = {
                 showSourceMenu = false

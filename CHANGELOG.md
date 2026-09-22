@@ -4,6 +4,50 @@ All notable changes to SetBeat, newest first. Each release has fuller notes (and
 [Releases](https://github.com/sultanmaliki/setbeat/releases) page. Versions before 0.2.3 were published
 under the earlier app names *Fitness Timer* (0.1 to 0.2) and *Cadence* (0.2.1 to 0.2.2).
 
+## 0.3.3 - a third edition: Vibes, for a wave that's always moving
+- **New edition: Vibes.** Same real track info as Full (companion mode, needs notification access),
+  but the wave is a procedural animation instead of real audio analysis — it always looks alive,
+  whatever's actually playing. No Record audio permission at all: it doesn't read anything real, so it
+  doesn't ask. For anyone who'd rather have motion than honesty about when the wave can't get real
+  data (see 0.3.1/0.3.2) — Full still exists for that.
+- **Why a third edition instead of just faking it everywhere:** real audio data was tried harder first.
+  `Visualizer` can attach to a specific track instead of the whole-system mix, which can get past the
+  hardware-offload wall — *if* the music app announces its session (an optional Android convention).
+  Tested against two real apps on the connected test phone by forcing real track changes: neither
+  supports it. Rather than silently give everyone a fake wave, Full and Standalone keep the honest
+  behavior, and Vibes is there if you'd rather trade accuracy for a wave that never sits still. Full
+  details: `DECISIONS.md`.
+
+## 0.3.2 - don't blame Bluetooth when it isn't Bluetooth
+- **The silent-wave card now checks whether Bluetooth is actually connected before mentioning it.**
+  Owner report: the card suggested a Bluetooth fix while playing through the phone's own speaker,
+  which is confusing when you can see you're not on Bluetooth. It now checks the real output route
+  (`AudioManager.getDevices()`, no extra permission) and only offers the Bluetooth-specific tip when
+  Bluetooth is actually connected; otherwise it says plainly that this isn't a Bluetooth issue and the
+  cause is the music app's own hardware decode path, with no in-app fix.
+
+## 0.3.1 - explain a silent beat wave
+- **The beat wave now says why it isn't reacting, instead of just sitting flat.** In companion mode,
+  if audio access is granted and music is playing but the wave stays idle, a dismissible card explains
+  that some music apps play compressed audio through a battery-saving hardware path (over Bluetooth or
+  the phone speaker) that skips the system effects the wave reads, with no reliable in-app fix — and
+  suggests disabling "Bluetooth A2DP hardware offload" in Developer options for the Bluetooth case.
+  This can't make the wave work in every case; it only makes the cause visible instead of looking
+  broken.
+
+## 0.3.0 - two editions, private signing key
+- **Fixes "App blocked to protect your device" (Google Play Protect) on other phones.** Play Protect
+  blocks sideloaded apps that declare notification-listener access in some markets. SetBeat now ships
+  two editions: **Standalone** (no notification listener, no audio capture: installs anywhere; local
+  media, playlists and the timer) and **Full** (adds companion mode and the beat wave; needs Google
+  Play or `adb` on phones that apply the block). On-device tests check that the standalone package
+  never declares the blocked permissions.
+- **Releases are now signed with SetBeat's own private key** (fingerprint in the README) instead of a
+  shared debug key, and each release lists SHA-256 checksums. **Breaking:** Android will not update
+  across a signing-key change, so uninstall 0.2.x first (its playlists and timer are removed).
+- README install guide rewritten (which edition, what the Play Protect message means, options,
+  verification). No other behaviour changes.
+
 ## 0.2.3 (SetBeat)
 - **Renamed to SetBeat** (a gym "set" plus the "beat" of the music). The earlier candidates were
   rejected: *Cadence* collides with a registered trademark, and *RepBeat* is an existing workout timer

@@ -8,10 +8,14 @@ setbeat/
 ├── README.md  PLAN.md  STRUCTURE.md  DECISIONS.md  CHANGELOG.md  CONTRIBUTING.md  LICENSE
 ├── docs/                            # logo, banner (also the GitHub social preview) and README screenshots
 ├── .github/ISSUE_TEMPLATE/          # bug report template
+├── keystore.properties (gitignored, local only)  # points at the private release key
 ├── test-logs/                       # saved unit/lint/device test run logs
 └── app/
     ├── build.gradle.kts
     └── src/
+        ├── full/                        # FULL edition extras: NotificationListenerService + Record audio manifest, companion_enabled=true
+        ├── standalone/                  # STANDALONE edition: companion_enabled=false, declares none of the blocked permissions
+        ├── vibes/                       # VIBES edition: like full minus Record audio; fake_wave=true (procedural wave, DECISIONS.md)
         ├── main/
         │   ├── AndroidManifest.xml
         │   └── kotlin/dev/fitnesstimer/
@@ -37,11 +41,12 @@ setbeat/
         │       │   ├── NegativeTimerText.kt # Difference-blend timer + hold ring (lambda inputs: draw-phase reads)
         │       │   ├── AudioVisual.kt       # artwork tile (native aspect, rounded), equalizer, timer slot
         │       │   ├── ArtTrim.kt           # pure: find/crop flat-colour bars baked into artwork
-        │       │   ├── WaveProgress.kt      # One UI-style waveform progress (companion mode)
+        │       │   ├── WaveProgress.kt      # One UI-style waveform progress (companion mode); fake=true drives it procedurally (vibes edition)
         │       │   └── AmbientColor.kt      # scaled-frame Palette sample; bounded artwork decode; ArtColors (HSL, pure)
         │       └── ui/
         │           ├── MainScreen.kt        # mirrors player state from a MediaController; wires everything
         │           ├── MediaSourceMenu.kt  PlaylistScreen.kt  TimerModeMenu.kt
+        ├── androidTestFull/  androidTestStandalone/   # per-edition on-device checks of the installed package
         ├── test/kotlin/dev/fitnesstimer/    # JVM unit tests (timer, alarm, gestures, audio bands, selection, colours, playlists, art trim)
         └── androidTest/kotlin/dev/fitnesstimer/   # on-device Compose tests: gesture engine (22) + full timer flow via MainScreen (8)
 ```

@@ -644,6 +644,42 @@ across repeated forced track changes. The bar-trim was also seen working on a re
 - Verification for the rename release: 123 unit tests, lint, clean release build, the 30 on-device
   tests, and a launch/capture smoke test of the release APK on the test phone.
 
+### N.5j Play Protect block, two editions, release signing (2026-09-21)
+
+Owner report: on other phones the APK shows Google Play Protect's "App blocked to protect your device".
+Cause and decision are recorded in `DECISIONS.md` (sideloaded apps declaring notification-listener,
+SMS or accessibility access are blocked in select markets; no user override). Result: `full` and
+`standalone` product flavors (same package id) selected by `companion_enabled`, per-edition manifests,
+per-edition on-device tests (34 standalone, 33 full, all passing), a private release key
+(`keystore.properties`, gitignored) and published fingerprint. Not verified: the standalone APK on a phone
+that actually applies the block; installing the release-signed APK (needs an uninstall of the
+debug-signed one, so it was not done on the only test phone).
+
+### N.5k Silent beat wave: honest hint, real fix attempt, third edition (2026-09-22)
+
+Owner report: at the gym, in companion mode, the wave stayed a flat idle ripple. Full investigation
+and decisions recorded in `DECISIONS.md`; summary here:
+
+1. **Root cause, confirmed on-device**: hardware audio offload (a battery-saving decode path some
+   players use for compressed formats) runs outside AudioFlinger's mixer, so the wave's audio reader
+   (`Visualizer`, session 0) never sees it — over Bluetooth or the phone speaker, depending on the
+   player and even the track. Not Bluetooth-specific, despite that being the most common trigger.
+2. **`full`/`standalone` fixed to be honest about it**: `AudioLevelSource.Status.SILENT` is now
+   surfaced in the UI instead of looking identical to "nothing playing" (`BeatSilentHintCard`), and
+   the hint only blames Bluetooth when `AudioManager.getDevices()` confirms it's actually connected.
+3. **Real fix attempted and found not to help**: `Visualizer` can attach to a specific track's
+   session instead of the global mix, which forces that track out of offload — *if* the player
+   broadcasts its session id (a long-standing but optional Android convention). Implemented and
+   tested against both real apps available (YouTube Music, Mi Music) by forcing real track changes on
+   the connected test phone: neither sends the broadcast. Rolled back (never committed).
+4. **Third edition added**: `vibes` — same companion-mode track info as `full`, but the wave is a
+   procedural animation (`WaveProgress.kt`'s `fakeBeatTarget`) instead of real audio analysis, and it
+   declares no Record audio permission at all. Verified on-device: animates convincingly, correctly
+   skips all the real-capture permission/hint UI (`fake_wave` resource, `MainScreen.kt`).
+5. **Regression check**: full check suite re-run after each change (369 unit tests across all three
+   editions, lint clean, permissions re-verified with `aapt2`); `full`'s real wave and hint UI
+   re-confirmed working on-device, unaffected by the shared-code changes for `vibes`.
+
 ### N.6 Phases
 
 - **P0 — Probe (device) — DONE 2026-09-21, see N.4:** with music playing, dump `dumpsys media_session`

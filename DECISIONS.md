@@ -7,12 +7,110 @@ them here.
 
 ## Resolved
 
+- **Google Play Protect blocks sideloaded installs — RESOLVED 2026-09-21 with two editions.** Owner
+  report: on phones other than the test phone, installing the APK shows "App blocked to protect your
+  device / This app can request access to sensitive data" with only OK. Cause (Google's developer
+  guidance, `developers.google.com/android/play-protect/warning-dev-guidance`, read through a
+  summarizing fetch): in select markets (Google has piloted India, Singapore, Thailand, Brazil), Play
+  Protect automatically blocks apps installed from "Internet-sideloading sources" (browser, messaging
+  app, file manager) if they use RECEIVE_SMS, READ_SMS, NOTIFICATION_LISTENER or ACCESSIBILITY; the
+  dialog has no override. SetBeat declares a NotificationListenerService (the only way to read other
+  apps' media sessions), so it was blocked. The test phone never showed it because `adb install` is not
+  an internet-sideloading source. Decision: ship **two editions** (same package id): **full** (companion
+  mode: notification listener + Record audio; for Google Play or `adb`) and **standalone** (no
+  notification listener, no audio capture, no SMS/accessibility; installs anywhere; local media and
+  timer only), with on-device tests that fail if the blocked declarations reach the standalone edition.
+  Deliberately NOT done: hiding or delaying the service declaration to slip past the scan (that would
+  evade a fraud-protection control and risks the app being flagged as harmful). Not verified: the
+  standalone APK on a phone that actually applies the block (only the test phone was available; the
+  manifest was inspected and tested instead). Other routes for the full edition: publish on Google Play
+  (Play installs are not blocked; needs a developer account, closed testing, and a policy review of
+  notification-listener, Record audio and exact-alarm use) or file a Play Protect appeal (outcome
+  unknown; may not apply to a permission-based block).
+- **Signing key — DECIDED 2026-09-21.** Releases are signed with a private RSA-4096 key
+  (CN=SetBeat, valid to 2054) kept outside the repo; `keystore.properties` and `*.jks` are gitignored.
+  Its SHA-256 fingerprint is published in the README. Consequence: the earlier debug-signed releases
+  (0.1 to 0.2.3) cannot be updated in place; the first installs of this key need an uninstall. The key
+  must be backed up by the owner: losing it means no future update can install over existing copies.
+- **R8/minify not enabled — 2026-09-21.** Considered for a smaller APK (~29 MB now). Not enabled because
+  the release-only code paths (Media3 service, receivers, alarm, listener) cannot be fully exercised
+  on-device in a non-debuggable build, so a keep-rule mistake would ship untested; revisit with a
+  minified debuggable "QA" build type that the on-device tests can run against.
 - **Local playback — DECIDED 2026-09-21: keep it as it is** (owner). Video and audio files,
   playlists and the ExoPlayer service stay alongside companion mode; companion mode is the default and
   a menu entry switches sources. It is built, tested, idle unless used, the only source for offline
   files, and the home of the original negative-blend video look.
 - **Cleanup pass — done 2026-09-21** (`PLAN.md` N.5h): unused code, stale heap dump and intermediate
   test logs removed; nothing user-visible changed.
+- **Beat wave silently not reacting — RESOLVED 2026-09-22 with an honest in-app hint; root cause
+  confirmed on-device, and it is not Bluetooth-specific.** Owner report: at the gym, in companion mode
+  over Bluetooth headphones, the wave stayed a flat idle ripple. `AudioLevelSource` already
+  distinguished this (`Status.SILENT`: the visualizer is running, RECORD_AUDIO is granted, but capture
+  keeps returning zeros) from "nothing playing", but the UI never surfaced the difference — both looked
+  identical. Reproduced immediately after on the connected test phone with **no Bluetooth involved**:
+  Mi Music playing over the phone's own speaker at full volume, `[viz] peak=0.0` continuously, despite
+  the same device having captured real data (`peak≈100`) in an earlier session (`test-logs/device-viz-
+  probe.log`) — so this is track/player-dependent, not a fixed device limitation. Root cause, confirmed
+  via a detailed technical writeup of the AOSP audio stack (`nift4.org`, cross-checked against a
+  Chromium bug on audio-offload power savings; Android's own reference docs don't document this):
+  compressed formats (MP3, FLAC, …) are commonly decoded on a low-power DSP via "hardware offload",
+  which runs on a `DirectOutputThread` instead of AudioFlinger's mixer — global-mix effects like
+  `Visualizer`(session 0) can only attach to a mixer thread, so an offloaded track is invisible to them
+  regardless of output device. Offload is a per-track decision made by the player/OS, not something a
+  Bluetooth connection uniquely causes (Bluetooth is only the most common trigger a listener notices,
+  because Bluetooth streaming engages it especially often). Decision: don't try to detect Bluetooth
+  output programmatically (would need `AudioManager.getDevices()`, whose exact permission/behavior
+  wasn't confirmed, and it would misdiagnose cases like this one anyway) — instead show a dismissible
+  card when `Status.SILENT` persists while companion audio is playing, stating plainly that this is a
+  hardware power-saving path some players use (over Bluetooth or the speaker) with no reliable in-app
+  fix, and that disabling "Bluetooth A2DP hardware offload" in Developer options is worth trying
+  specifically for the Bluetooth case (`CompanionScreen.kt`'s `BeatSilentHintCard`). There is no known
+  general fix for local-playback offload short of the source app itself offering a "disable offload" or
+  "software decode" setting.
+- **Silent-wave card wrongly implied Bluetooth when it wasn't — RESOLVED 2026-09-22, supersedes the
+  "don't try to detect Bluetooth" call above.** Owner report: saw the card mention Bluetooth while not
+  using Bluetooth audio, which reads as the app misdiagnosing its own state. The earlier decision
+  against `AudioManager.getDevices()` was because its permission requirement wasn't confirmed — now
+  checked directly against the AOSP source (`frameworks/base/media/java/android/media/AudioManager.java`):
+  `getDevices(int)` carries no `@RequiresPermission` annotation, and has existed since API 23 (below
+  this app's minSdk 29), so it needs no manifest change. Added
+  `isBluetoothAudioOutputActive()` (`AudioLevelSource.kt`), checking `GET_DEVICES_OUTPUTS` for
+  `TYPE_BLUETOOTH_A2DP`/`TYPE_BLE_HEADSET`/`TYPE_BLE_SPEAKER`/`TYPE_BLE_BROADCAST`. `BeatSilentHintCard`
+  now picks accurate wording: the Bluetooth-offload tip only when Bluetooth is actually connected,
+  otherwise a message that explicitly rules Bluetooth out and names the player's own decode path
+  instead. Caveat: `getDevices()` reports currently-connected devices, which is a fine proxy for the
+  active route in the common case (only one output connected) but could be wrong if a phone has
+  multiple simultaneous outputs and routes elsewhere — not verified against such a setup.
+- **Real fix for the silent wave attempted and found not to help — 2026-09-22, third edition added
+  instead.** Owner asked for the wave to actually work, not just explain itself. Researched and
+  implemented the one legitimate mechanism that can get real data past hardware offload: `Visualizer`
+  can attach to a specific track's session instead of the session-0 global mix, and Android excludes
+  a session with a non-offloadable effect attached from offload — but only if the player announces its
+  session via the standard (optional, long-standing) `android.media.action.OPEN_AUDIO_EFFECT_CONTROL_
+  SESSION` broadcast. Implemented (`EffectSessionReceiver`, `AudioLevelSource.setTargetSession`) and
+  tested on the connected test phone by forcing real track changes (via a temporary debug hook, since
+  this ROM also blocks scripted input and `am start`'s `onNewIntent` delivery to an already-foregrounded
+  activity) on **both real apps available**: YouTube Music and Mi Music. Neither sent the broadcast on a
+  fresh track. Conclusion: this app has no real second data point to test against and the mechanism
+  provides no verified benefit for this owner's actual use — rolled back (never committed) rather than
+  ship unverified complexity. It could still help with a player that does support the convention (VLC,
+  installed on the test phone but not tested — no track was queued); worth revisiting if that becomes
+  relevant.
+  Decision: add a third product flavor, **`vibes`** — same real companion-mode track info as `full`
+  (needs notification access), but the wave is a procedural animation (`WaveProgress.kt`'s
+  `fakeBeatTarget`, driven by playback position so it's deterministic, not audio data) instead of real
+  analysis, and it declares no Record audio / Modify audio settings at all (`fake_wave` resource,
+  gates `AudioLevelSource` out entirely in `MainActivity.kt`/`MainScreen.kt`). This is a genuine
+  reversal of the "idle ripple, not fake beats" principle the honest editions keep — deliberate, and
+  scoped to this one edition only, so the choice between honesty and always-looks-alive is the
+  installer's, not silently made for them. Verified on-device: the wave visibly animates with distinct
+  rhythmic peaks across several screenshots, and none of the real-capture permission/hint UI
+  (`BeatAccessCard`, `BeatSilentHintCard`) appears, confirmed by code (guarded on `!fakeWave`) and by
+  screenshot. Regression check after both changes: 369 unit tests (up from 246 across the two prior
+  editions) all pass, lint clean on all three editions, `aapt2 dump permissions` re-confirmed
+  `standalone` has none of the Play-Protect-blocked declarations and `vibes` has no audio permissions,
+  and `full`'s real wave/hint behaviour re-verified working on-device, unaffected by the shared-code
+  changes needed to thread the `fake`/`fakeWave` flag through.
 - **Name — DECIDED 2026-09-21: "SetBeat"** (repo `setbeat`), after two rejected candidates.
   *Cadence* (used briefly) collides with Cadence Design Systems' registered CADENCE mark (US Reg. No.
   3474136, Class 9, IC-design software). *RepBeat* (proposed by the owner) already exists as an App

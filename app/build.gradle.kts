@@ -1,6 +1,15 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+}
+
+// Private release signing key: keystore.properties is gitignored and lives only on the maintainer's
+// machine. Without it (a fresh clone) release builds fall back to the debug key so they still build.
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
 }
 
 android {
@@ -13,19 +22,52 @@ android {
         // Not yet the final v1 minSdk decision.
         minSdk = 29
         targetSdk = 37
-        versionCode = 5
-        versionName = "0.2.3"
+        versionCode = 9
+        versionName = "0.3.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        if (keystoreProps.containsKey("storeFile")) {
+            create("release") {
+                storeFile = file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
+    }
+
+    // Editions of the same app (same package id):
+    //  - full:       companion mode. Declares a NotificationListenerService (needed to read what other
+    //                apps are playing) and Record audio (the beat wave). Google Play Protect BLOCKS
+    //                sideloaded installs of apps declaring notification-listener in some markets, so
+    //                this edition is for Google Play or `adb install`.
+    //  - standalone: no notification listener and no audio capture, so it installs anywhere.
+    //                Local media, playlists and the timer only.
+    //  - vibes:      LOCAL EXPERIMENT, not distributed (DECISIONS.md). Companion mode's real track
+    //                info, but the wave is a procedural animation instead of real audio analysis —
+    //                tried only after confirming on-device that no available music app supports the
+    //                real fix (attaching to an announced track session). No Record audio permission.
+    flavorDimensions += "edition"
+    productFlavors {
+        create("full") { dimension = "edition" }
+        create("standalone") {
+            dimension = "edition"
+            versionNameSuffix = "-standalone"
+        }
+        create("vibes") {
+            dimension = "edition"
+            versionNameSuffix = "-vibes"
+        }
     }
 
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Sideload builds are signed with the standard debug key so they install over
-            // earlier v0.1.x builds. The release variant is NOT debuggable, which switches
-            // off the debug-only test hooks. A private release keystore is needed before
-            // any Play/F-Droid distribution.
-            signingConfig = signingConfigs.getByName("debug")
+            // Signed with the private release key when keystore.properties exists (never committed).
+            // The release variant is NOT debuggable, which switches off the debug-only test hooks.
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 

@@ -2,6 +2,8 @@ package dev.fitnesstimer.nowplaying
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
 import android.media.audiofx.Visualizer
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -9,6 +11,26 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 private const val TAG = "FitnessTimer"
+
+/**
+ * Whether a Bluetooth output (classic A2DP or BLE audio) is currently connected. Used only to
+ * pick accurate wording for [Status.SILENT] ("wave isn't reacting") — never to gate the capture
+ * itself, since plenty of non-Bluetooth playback hits the same hardware-offload wall (confirmed
+ * on-device 2026-09-22; see DECISIONS.md). `AudioManager.getDevices()` needs no permission (no
+ * `@RequiresPermission` in the AOSP source, cross-checked directly against
+ * `frameworks/base/media/java/android/media/AudioManager.java`) and has existed since API 23, well
+ * under this app's minSdk 29, so no version guard is needed for the older BLE type constants
+ * either (comparing against a constant a device can't report is harmless, just never matches).
+ */
+fun isBluetoothAudioOutputActive(context: Context): Boolean {
+    val am = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return false
+    return am.getDevices(AudioManager.GET_DEVICES_OUTPUTS).any { d ->
+        d.type == AudioDeviceInfo.TYPE_BLUETOOTH_A2DP ||
+            d.type == AudioDeviceInfo.TYPE_BLE_HEADSET ||
+            d.type == AudioDeviceInfo.TYPE_BLE_SPEAKER ||
+            d.type == AudioDeviceInfo.TYPE_BLE_BROADCAST
+    }
+}
 
 /**
  * Real-time low/mid/high levels of whatever the phone is currently playing,

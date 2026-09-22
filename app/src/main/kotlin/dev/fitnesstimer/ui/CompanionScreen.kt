@@ -54,6 +54,7 @@ fun CompanionBody(
     colors: ArtColors,
     timerText: () -> String,
     holdProgress: () -> Float,
+    fakeWave: Boolean = false,
 ) {
     Box(Modifier.fillMaxSize()) {
         if (nowPlaying != null) {
@@ -96,7 +97,7 @@ fun CompanionBody(
                         }
                     }
                     Spacer(Modifier.height(20.dp))
-                    WaveProgress(nowPlaying, colors.accent, Modifier.width(tileMaxWidth))
+                    WaveProgress(nowPlaying, colors.accent, Modifier.width(tileMaxWidth), fake = fakeWave)
                     Spacer(Modifier.height(4.dp))
                     NegativeTimerText(
                         text = timerText,
@@ -200,6 +201,58 @@ fun BeatAccessCard(onEnable: () -> Unit, onDismiss: () -> Unit, modifier: Modifi
             Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
                 TextButton(onClick = onDismiss) { Text("Not now") }
                 Button(onClick = onEnable) { Text("Enable") }
+            }
+        }
+    }
+}
+
+/**
+ * Shown when audio access is granted and companion audio is playing, but the
+ * visualizer keeps reporting silence (AudioLevelSource.Status.SILENT): the
+ * wave falls back to a faint idle ripple, which reads as broken rather than
+ * "no data available". Root cause (confirmed on-device 2026-09-22, and by
+ * Android's own offload-audio design — DECISIONS.md): some music apps decode
+ * compressed audio (MP3, FLAC, …) on a low-power DSP path ("hardware
+ * offload") that bypasses AudioFlinger's mixer entirely, so the global-mix
+ * effect the wave reads (Visualizer, session 0) never receives any data.
+ * This happens over Bluetooth *and* straight out of the phone speaker,
+ * depending on the player and the phone — it is not Bluetooth-specific, so
+ * [bluetoothActive] (from [dev.fitnesstimer.nowplaying.isBluetoothAudioOutputActive])
+ * picks accurate wording instead of blaming Bluetooth when the phone is
+ * playing through its own speaker. Separate overlay (not inside the gesture
+ * Box).
+ */
+@Composable
+fun BeatSilentHintCard(bluetoothActive: Boolean, onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+        Column(
+            Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0xFF1C1C1C))
+                .padding(16.dp),
+        ) {
+            Text("Wave isn't reacting to the music", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                if (bluetoothActive) {
+                    "Audio access is on, but Android isn't handing this app any sound to measure. This phone is " +
+                        "on Bluetooth right now, which often routes audio through a battery-saving hardware path " +
+                        "that skips the system effects the wave reads. Worth trying: disable \"Bluetooth A2DP " +
+                        "hardware offload\" in Developer options. If that doesn't help, or if the wave stays flat " +
+                        "later without Bluetooth too, it's the player itself — see below."
+                } else {
+                    "Audio access is on, but Android isn't handing this app any sound to measure — and this isn't " +
+                        "a Bluetooth thing, since nothing's connected right now. Some music apps decode audio " +
+                        "through a battery-saving hardware path that skips the system effects the wave reads, " +
+                        "straight out of the phone speaker or wired output too. There's no reliable fix from " +
+                        "inside this app; it depends on the player and sometimes even the track."
+                },
+                color = Color.White.copy(alpha = 0.75f),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = onDismiss) { Text("Got it") }
             }
         }
     }

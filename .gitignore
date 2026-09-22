@@ -16,3 +16,8 @@ app/release/
 
 # Log/profile files Studio sometimes drops in the project root
 *.hprof
+
+# Release signing secrets: never commit these (back them up somewhere safe instead)
+keystore.properties
+*.jks
+*.keystore

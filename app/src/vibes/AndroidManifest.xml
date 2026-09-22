@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- No RECORD_AUDIO / MODIFY_AUDIO_SETTINGS: this edition's wave is a procedural animation, not
+         real audio analysis (DECISIONS.md, LOCAL EXPERIMENT, not distributed). -->
+
+    <application>
+        <!-- Needed for companion mode's real track title/artist/artwork, same as the full edition. -->
+        <service
+            android:name="dev.fitnesstimer.nowplaying.NowPlayingListenerService"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+    </application>
+
+</manifest>
