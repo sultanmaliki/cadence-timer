@@ -4,6 +4,20 @@ All notable changes to SetBeat, newest first. Each release has fuller notes (and
 [Releases](https://github.com/sultanmaliki/setbeat/releases) page. Versions before 0.2.3 were published
 under the earlier app names *Fitness Timer* (0.1 to 0.2) and *Cadence* (0.2.1 to 0.2.2).
 
+## 0.3.3 - a third edition: Vibes, for a wave that's always moving
+- **New edition: Vibes.** Same real track info as Full (companion mode, needs notification access),
+  but the wave is a procedural animation instead of real audio analysis — it always looks alive,
+  whatever's actually playing. No Record audio permission at all: it doesn't read anything real, so it
+  doesn't ask. For anyone who'd rather have motion than honesty about when the wave can't get real
+  data (see 0.3.1/0.3.2) — Full still exists for that.
+- **Why a third edition instead of just faking it everywhere:** real audio data was tried harder first.
+  `Visualizer` can attach to a specific track instead of the whole-system mix, which can get past the
+  hardware-offload wall — *if* the music app announces its session (an optional Android convention).
+  Tested against two real apps on the connected test phone by forcing real track changes: neither
+  supports it. Rather than silently give everyone a fake wave, Full and Standalone keep the honest
+  behavior, and Vibes is there if you'd rather trade accuracy for a wave that never sits still. Full
+  details: `DECISIONS.md`.
+
 ## 0.3.2 - don't blame Bluetooth when it isn't Bluetooth
 - **The silent-wave card now checks whether Bluetooth is actually connected before mentioning it.**
   Owner report: the card suggested a Bluetooth fix while playing through the phone's own speaker,

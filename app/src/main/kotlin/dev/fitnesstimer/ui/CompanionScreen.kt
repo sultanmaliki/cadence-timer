@@ -54,6 +54,7 @@ fun CompanionBody(
     colors: ArtColors,
     timerText: () -> String,
     holdProgress: () -> Float,
+    fakeWave: Boolean = false,
 ) {
     Box(Modifier.fillMaxSize()) {
         if (nowPlaying != null) {
@@ -96,7 +97,7 @@ fun CompanionBody(
                         }
                     }
                     Spacer(Modifier.height(20.dp))
-                    WaveProgress(nowPlaying, colors.accent, Modifier.width(tileMaxWidth))
+                    WaveProgress(nowPlaying, colors.accent, Modifier.width(tileMaxWidth), fake = fakeWave)
                     Spacer(Modifier.height(4.dp))
                     NegativeTimerText(
                         text = timerText,

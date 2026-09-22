@@ -15,6 +15,7 @@ setbeat/
     └── src/
         ├── full/                        # FULL edition extras: NotificationListenerService + Record audio manifest, companion_enabled=true
         ├── standalone/                  # STANDALONE edition: companion_enabled=false, declares none of the blocked permissions
+        ├── vibes/                       # VIBES edition: like full minus Record audio; fake_wave=true (procedural wave, DECISIONS.md)
         ├── main/
         │   ├── AndroidManifest.xml
         │   └── kotlin/dev/fitnesstimer/
@@ -40,7 +41,7 @@ setbeat/
         │       │   ├── NegativeTimerText.kt # Difference-blend timer + hold ring (lambda inputs: draw-phase reads)
         │       │   ├── AudioVisual.kt       # artwork tile (native aspect, rounded), equalizer, timer slot
         │       │   ├── ArtTrim.kt           # pure: find/crop flat-colour bars baked into artwork
-        │       │   ├── WaveProgress.kt      # One UI-style waveform progress (companion mode)
+        │       │   ├── WaveProgress.kt      # One UI-style waveform progress (companion mode); fake=true drives it procedurally (vibes edition)
         │       │   └── AmbientColor.kt      # scaled-frame Palette sample; bounded artwork decode; ArtColors (HSL, pure)
         │       └── ui/
         │           ├── MainScreen.kt        # mirrors player state from a MediaController; wires everything

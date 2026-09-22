@@ -16,6 +16,9 @@ import dev.fitnesstimer.ui.MainScreen
 
 class MainActivity : ComponentActivity() {
     private val companionEnabled by lazy { resources.getBoolean(R.bool.companion_enabled) }
+    // LOCAL EXPERIMENT (DECISIONS.md, not distributed): this edition has no RECORD_AUDIO permission
+    // at all, so the real audio capture must never be touched, not just left unused.
+    private val fakeWave by lazy { resources.getBoolean(R.bool.fake_wave) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,14 +81,14 @@ class MainActivity : ComponentActivity() {
 
     override fun onPause() {
         AppTimer.uiVisible = false
-        if (companionEnabled) AudioLevelSource.setVisible(false)
+        if (companionEnabled && !fakeWave) AudioLevelSource.setVisible(false)
         super.onPause()
     }
 
     override fun onResume() {
         super.onResume()
         AppTimer.uiVisible = true
-        if (companionEnabled) {
+        if (companionEnabled && !fakeWave) {
             AudioLevelSource.refreshPermission(this)
             AudioLevelSource.setVisible(true)
         }

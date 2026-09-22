@@ -22,8 +22,8 @@ android {
         // Not yet the final v1 minSdk decision.
         minSdk = 29
         targetSdk = 37
-        versionCode = 8
-        versionName = "0.3.2"
+        versionCode = 9
+        versionName = "0.3.3"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -38,19 +38,27 @@ android {
         }
     }
 
-    // Two editions of the same app (same package id):
+    // Editions of the same app (same package id):
     //  - full:       companion mode. Declares a NotificationListenerService (needed to read what other
     //                apps are playing) and Record audio (the beat wave). Google Play Protect BLOCKS
     //                sideloaded installs of apps declaring notification-listener in some markets, so
     //                this edition is for Google Play or `adb install`.
     //  - standalone: no notification listener and no audio capture, so it installs anywhere.
     //                Local media, playlists and the timer only.
+    //  - vibes:      LOCAL EXPERIMENT, not distributed (DECISIONS.md). Companion mode's real track
+    //                info, but the wave is a procedural animation instead of real audio analysis —
+    //                tried only after confirming on-device that no available music app supports the
+    //                real fix (attaching to an announced track session). No Record audio permission.
     flavorDimensions += "edition"
     productFlavors {
         create("full") { dimension = "edition" }
         create("standalone") {
             dimension = "edition"
             versionNameSuffix = "-standalone"
+        }
+        create("vibes") {
+            dimension = "edition"
+            versionNameSuffix = "-vibes"
         }
     }
 

@@ -66,13 +66,19 @@ Sample footage: <i>Big Buck Bunny</i> © Blender Foundation, <a href="https://pe
 
 ## Install
 
-SetBeat comes in **two editions** from the [Releases](https://github.com/sultanmaliki/setbeat/releases)
-page. Pick by what you need:
+SetBeat comes in **three editions** from the [Releases](https://github.com/sultanmaliki/setbeat/releases)
+page. They exist because of one specific problem: Android's audio visualizer (the API behind the
+beat-reactive wave) cannot see audio that a music app plays through a battery-saving hardware decode
+path, and there's no reliable way to detect or work around that from outside the app (confirmed
+on-device across multiple real apps — see `DECISIONS.md`). Standalone and Full sidestep this
+honestly (no wave, or a wave that tells you when it can't get real data); Vibes chooses to look good
+over being accurate. Pick by what you need:
 
 | Edition | Download | What you get | Where it installs |
 |---|---|---|---|
 | **Standalone** | `setbeat-standalone-vX.Y.Z.apk` | Stopwatch and countdown, gestures, local video and audio with the negative-blend timer, playlists, background countdown alarm | **Any phone**, straight from your browser or a file manager |
-| **Full** | `setbeat-full-vX.Y.Z.apk` | Everything in Standalone **plus** companion mode (shows and controls what other music apps play) and the beat-reactive wave | Needs one extra step on some phones, see below |
+| **Full** | `setbeat-full-vX.Y.Z.apk` | Everything in Standalone **plus** companion mode (shows and controls what other music apps play) and the beat-reactive wave, driven by real audio when Android will allow it, with an honest explanation when it won't | Needs one extra step on some phones, see below |
+| **Vibes** | `setbeat-vibes-vX.Y.Z.apk` | Everything in Full **except** the wave isn't real: it's a procedural animation (a steady pulse plus motion on the other bands) that always looks alive, regardless of what's actually playing. No Record audio permission at all — the wave doesn't read anything. | Same as Full |
 
 **Standalone:** download, open, allow installs from your browser or file manager, done. It asks for
 no sensitive permissions.
@@ -82,21 +88,26 @@ what's playing. On some phones Android says *Restricted setting*; open SetBeat's
 choose *Allow restricted settings*, then try again. Optionally allow **Record audio** when offered to
 switch on the beat wave (see below).
 
+**Vibes:** same install and notification-access steps as Full, but it never asks for Record audio —
+there's nothing real for it to read. If you'd rather see an honest "not reacting" message than a wave
+that's just performing, use Full instead.
+
 ### "App blocked to protect your device" (Google Play Protect)
 
-If you try to install the **Full** edition and Google Play Protect says *"This app can request access
-to sensitive data"* with only an **OK** button, that is not a bug and not malware detection. In some
-markets (Google has piloted it in India, Singapore, Thailand and Brazil), Play Protect automatically
-blocks apps installed from a browser, messaging app or file manager if they ask for one of four
-sensitive permissions: reading SMS, accessibility control, or **notification access**. Fraud apps abuse
-those to steal one-time passwords. SetBeat's companion mode needs notification access (it is the only
-way Android lets an app see what another app is playing), and it only reads media playback info.
+If you try to install the **Full** or **Vibes** edition and Google Play Protect says *"This app can
+request access to sensitive data"* with only an **OK** button, that is not a bug and not malware
+detection. In some markets (Google has piloted it in India, Singapore, Thailand and Brazil), Play
+Protect automatically blocks apps installed from a browser, messaging app or file manager if they ask
+for one of four sensitive permissions: reading SMS, accessibility control, or **notification access**.
+Fraud apps abuse those to steal one-time passwords. Companion mode (in both Full and Vibes) needs
+notification access — it is the only way Android lets an app see what another app is playing — and it
+only reads media playback info.
 
 What you can do:
 - **Install the Standalone edition instead.** It does not declare any of those permissions, so Play
   Protect does not block it.
-- Install the Full edition with `adb` from a computer (Play Protect's block applies to installs from
-  browsers, messaging apps and file managers): `adb install setbeat-full-vX.Y.Z.apk`.
+- Install the Full or Vibes edition with `adb` from a computer (Play Protect's block applies to installs
+  from browsers, messaging apps and file managers): `adb install setbeat-full-vX.Y.Z.apk`.
 - Pausing Play Protect's scanning lets the install through, but it lowers your phone's protection while
   paused, so we do not recommend it.
 - A Google Play listing would avoid the block entirely; it is not published there yet.
@@ -120,13 +131,13 @@ SetBeat needs Android 10 or newer.
 
 | Permission | Used for | Notes |
 |---|---|---|
-| Notification access | Reading what other apps are playing (title, artwork, progress) and controlling them | **Full edition only.** Reads **media sessions only**. It never reads your notifications. |
-| Record audio (+ Modify audio settings) | Android's audio visualizer, to measure low/mid/high loudness for the wave | **Full edition only**, optional. The microphone is **not** used; nothing is recorded, stored or sent. Android simply gates the visualizer behind this permission. |
-| Exact alarms, boot completed | Ringing when a countdown ends, and re-arming it after a reboot | Both editions. |
-| Notifications | The "Time's up" alert | Both editions. Asked when you pick a countdown. |
+| Notification access | Reading what other apps are playing (title, artwork, progress) and controlling them | **Full and Vibes only.** Reads **media sessions only**. It never reads your notifications. |
+| Record audio (+ Modify audio settings) | Android's audio visualizer, to measure low/mid/high loudness for the wave | **Full edition only**, optional. The microphone is **not** used; nothing is recorded, stored or sent. Android simply gates the visualizer behind this permission. Vibes doesn't ask for this at all — its wave doesn't read anything real. |
+| Exact alarms, boot completed | Ringing when a countdown ends, and re-arming it after a reboot | All three editions. |
+| Notifications | The "Time's up" alert | All three editions. Asked when you pick a countdown. |
 
 There is no internet permission at all. The Standalone edition has none of the permissions above
-marked "Full edition only".
+marked "Full and Vibes only" or "Full edition only".
 
 ## Build from source
 
@@ -134,10 +145,10 @@ You need Android Studio (its bundled JDK is fine) and an Android SDK; the Gradle
 rest.
 
 ```bash
-./gradlew assembleFullDebug assembleStandaloneDebug   # debug APKs in app/build/outputs/apk/<edition>/debug
-./gradlew testFullDebugUnitTest testStandaloneDebugUnitTest   # 100+ JVM unit tests
-./gradlew lintFullDebug lintStandaloneDebug
-./gradlew assembleFullRelease assembleStandaloneRelease       # release APKs
+./gradlew assembleFullDebug assembleStandaloneDebug assembleVibesDebug   # debug APKs in app/build/outputs/apk/<edition>/debug
+./gradlew testFullDebugUnitTest testStandaloneDebugUnitTest testVibesDebugUnitTest   # 100+ JVM unit tests per edition
+./gradlew lintFullDebug lintStandaloneDebug lintVibesDebug
+./gradlew assembleFullRelease assembleStandaloneRelease assembleVibesRelease         # release APKs
 ```
 
 Release builds are signed with a private key read from a gitignored `keystore.properties`; without it

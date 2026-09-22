@@ -81,6 +81,36 @@ them here.
   instead. Caveat: `getDevices()` reports currently-connected devices, which is a fine proxy for the
   active route in the common case (only one output connected) but could be wrong if a phone has
   multiple simultaneous outputs and routes elsewhere — not verified against such a setup.
+- **Real fix for the silent wave attempted and found not to help — 2026-09-22, third edition added
+  instead.** Owner asked for the wave to actually work, not just explain itself. Researched and
+  implemented the one legitimate mechanism that can get real data past hardware offload: `Visualizer`
+  can attach to a specific track's session instead of the session-0 global mix, and Android excludes
+  a session with a non-offloadable effect attached from offload — but only if the player announces its
+  session via the standard (optional, long-standing) `android.media.action.OPEN_AUDIO_EFFECT_CONTROL_
+  SESSION` broadcast. Implemented (`EffectSessionReceiver`, `AudioLevelSource.setTargetSession`) and
+  tested on the connected test phone by forcing real track changes (via a temporary debug hook, since
+  this ROM also blocks scripted input and `am start`'s `onNewIntent` delivery to an already-foregrounded
+  activity) on **both real apps available**: YouTube Music and Mi Music. Neither sent the broadcast on a
+  fresh track. Conclusion: this app has no real second data point to test against and the mechanism
+  provides no verified benefit for this owner's actual use — rolled back (never committed) rather than
+  ship unverified complexity. It could still help with a player that does support the convention (VLC,
+  installed on the test phone but not tested — no track was queued); worth revisiting if that becomes
+  relevant.
+  Decision: add a third product flavor, **`vibes`** — same real companion-mode track info as `full`
+  (needs notification access), but the wave is a procedural animation (`WaveProgress.kt`'s
+  `fakeBeatTarget`, driven by playback position so it's deterministic, not audio data) instead of real
+  analysis, and it declares no Record audio / Modify audio settings at all (`fake_wave` resource,
+  gates `AudioLevelSource` out entirely in `MainActivity.kt`/`MainScreen.kt`). This is a genuine
+  reversal of the "idle ripple, not fake beats" principle the honest editions keep — deliberate, and
+  scoped to this one edition only, so the choice between honesty and always-looks-alive is the
+  installer's, not silently made for them. Verified on-device: the wave visibly animates with distinct
+  rhythmic peaks across several screenshots, and none of the real-capture permission/hint UI
+  (`BeatAccessCard`, `BeatSilentHintCard`) appears, confirmed by code (guarded on `!fakeWave`) and by
+  screenshot. Regression check after both changes: 369 unit tests (up from 246 across the two prior
+  editions) all pass, lint clean on all three editions, `aapt2 dump permissions` re-confirmed
+  `standalone` has none of the Play-Protect-blocked declarations and `vibes` has no audio permissions,
+  and `full`'s real wave/hint behaviour re-verified working on-device, unaffected by the shared-code
+  changes needed to thread the `fake`/`fakeWave` flag through.
 - **Name — DECIDED 2026-09-21: "SetBeat"** (repo `setbeat`), after two rejected candidates.
   *Cadence* (used briefly) collides with Cadence Design Systems' registered CADENCE mark (US Reg. No.
   3474136, Class 9, IC-design software). *RepBeat* (proposed by the owner) already exists as an App

@@ -136,6 +136,9 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
     // otherwise the local player is shown. Survives Activity recreation.
     // The standalone edition has no companion mode at all (see app/build.gradle.kts).
     val companionAvailable = remember { context.resources.getBoolean(R.bool.companion_enabled) }
+    // LOCAL EXPERIMENT (DECISIONS.md, not distributed): this edition has no RECORD_AUDIO permission,
+    // so it must never show the real-capture permission/hint UI and the wave is always the fake one.
+    val fakeWave = remember { context.resources.getBoolean(R.bool.fake_wave) }
     var companionMode by rememberSaveable { mutableStateOf(companionAvailable && debugUris.isEmpty()) }
     var accessCardDismissed by rememberSaveable { mutableStateOf(false) }
     val nowPlayingState by NowPlayingRepository.state.collectAsState()
@@ -242,7 +245,9 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
     val companionPlaying = companionMode && nowPlayingState.nowPlaying?.isPlaying == true
     // Debounced off: sources report a brief "buffering"/skipping state at track changes, and
     // stopping/restarting the capture each time reset the analysis and briefly blanked the wave.
-    LaunchedEffect(companionPlaying) {
+    // Skipped entirely for the fake-wave edition, which has no RECORD_AUDIO permission to use.
+    LaunchedEffect(companionPlaying, fakeWave) {
+        if (fakeWave) return@LaunchedEffect
         if (companionPlaying) {
             AudioLevelSource.setWanted(true)
         } else {
@@ -404,6 +409,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
                 colors = companionColors,
                 timerText = { formatElapsed(timer.displayMs) },
                 holdProgress = { holdProgress },
+                fakeWave = fakeWave,
             )
             hasMedia && isAudioOnly -> {
                 // Timer goes BELOW the artwork here (AudioVisual's slot),
@@ -454,7 +460,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         }
     }
 
-    if (companionMode && nowPlayingState.accessGranted && nowPlayingState.nowPlaying != null &&
+    if (!fakeWave && companionMode && nowPlayingState.accessGranted && nowPlayingState.nowPlaying != null &&
         !recordGranted && !beatCardDismissed
     ) {
         BeatAccessCard(
@@ -470,7 +476,7 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         NotificationAccessCard(onDismiss = { accessCardDismissed = true })
     }
 
-    if (companionMode && recordGranted && companionPlaying &&
+    if (!fakeWave && companionMode && recordGranted && companionPlaying &&
         vizStatus == AudioLevelSource.Status.SILENT && !silentHintDismissed
     ) {
         val bluetoothActive = remember(vizStatus) { isBluetoothAudioOutputActive(context) }
