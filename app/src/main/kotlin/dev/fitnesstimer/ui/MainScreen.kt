@@ -236,6 +236,8 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
         Log.d(TAG, "RECORD_AUDIO granted=$granted")
         AudioLevelSource.refreshPermission(context)
     }
+    val vizStatus by AudioLevelSource.status.collectAsState()
+    var silentHintDismissed by remember { mutableStateOf(prefs.getBoolean("beat_silent_hint_dismissed", false)) }
     val companionPlaying = companionMode && nowPlayingState.nowPlaying?.isPlaying == true
     // Debounced off: sources report a brief "buffering"/skipping state at track changes, and
     // stopping/restarting the capture each time reset the analysis and briefly blanked the wave.
@@ -465,6 +467,17 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
 
     if (companionMode && !nowPlayingState.accessGranted && !accessCardDismissed) {
         NotificationAccessCard(onDismiss = { accessCardDismissed = true })
+    }
+
+    if (companionMode && recordGranted && companionPlaying &&
+        vizStatus == AudioLevelSource.Status.SILENT && !silentHintDismissed
+    ) {
+        BeatSilentHintCard(
+            onDismiss = {
+                silentHintDismissed = true
+                prefs.edit().putBoolean("beat_silent_hint_dismissed", true).apply()
+            },
+        )
     }
 
     if (!companionMode) playbackError?.let { msg ->

@@ -42,6 +42,21 @@ them here.
   files, and the home of the original negative-blend video look.
 - **Cleanup pass — done 2026-09-21** (`PLAN.md` N.5h): unused code, stale heap dump and intermediate
   test logs removed; nothing user-visible changed.
+- **Beat wave silently not reacting over Bluetooth — RESOLVED 2026-09-22 with an honest in-app hint.**
+  Owner report: at the gym, in companion mode over Bluetooth headphones, the wave stayed a flat idle
+  ripple. `AudioLevelSource` already distinguished this (`Status.SILENT`: the visualizer is running,
+  RECORD_AUDIO is granted, but capture keeps returning zeros) from "nothing playing", but the UI never
+  surfaced the difference — both looked identical. Likely cause, from web research (not confirmed
+  against Android's own docs, which don't document this): on many phones "Bluetooth A2DP hardware
+  offload" routes audio to the Bluetooth chip directly, bypassing the AudioFlinger effects chain that
+  `Visualizer` (session 0) reads from; a known workaround reported by other visualizer-app developers is
+  disabling that toggle in Developer options. Decision: don't try to detect Bluetooth output
+  programmatically (would need `AudioManager.getDevices()`, whose exact permission/behavior wasn't
+  confirmed, and it's only ever a proxy for the real signal anyway) — instead show a dismissible card
+  when `Status.SILENT` persists while companion audio is playing, explaining plainly that this is likely
+  a Bluetooth limitation and suggesting wired/speaker audio or disabling hardware offload
+  (`CompanionScreen.kt`'s `BeatSilentHintCard`). Not verified: whether disabling hardware offload
+  actually fixes capture on the owner's phone (needs a hand test at the gym).
 - **Name — DECIDED 2026-09-21: "SetBeat"** (repo `setbeat`), after two rejected candidates.
   *Cadence* (used briefly) collides with Cadence Design Systems' registered CADENCE mark (US Reg. No.
   3474136, Class 9, IC-design software). *RepBeat* (proposed by the owner) already exists as an App

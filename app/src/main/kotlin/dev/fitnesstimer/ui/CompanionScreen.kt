@@ -204,3 +204,39 @@ fun BeatAccessCard(onEnable: () -> Unit, onDismiss: () -> Unit, modifier: Modifi
         }
     }
 }
+
+/**
+ * Shown when audio access is granted and companion audio is playing, but the
+ * visualizer keeps reporting silence (AudioLevelSource.Status.SILENT): the
+ * wave falls back to a faint idle ripple, which reads as broken rather than
+ * "no data available". Most commonly seen over Bluetooth, where some Android
+ * versions/OEMs route audio through hardware that bypasses the effects chain
+ * the wave depends on (PLAN.md N.5e, DECISIONS.md). Separate overlay (not
+ * inside the gesture Box).
+ */
+@Composable
+fun BeatSilentHintCard(onDismiss: () -> Unit, modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.BottomCenter) {
+        Column(
+            Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color(0xFF1C1C1C))
+                .padding(16.dp),
+        ) {
+            Text("Wave isn't reacting to the music", color = Color.White, style = MaterialTheme.typography.titleMedium)
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Audio access is on, but Android isn't handing this app any sound to measure. This is " +
+                    "usually a Bluetooth limitation: some phones route Bluetooth audio around the system " +
+                    "effects the wave depends on. Try the phone speaker or wired audio, or in Settings ▸ " +
+                    "Developer options, disable \"Bluetooth A2DP hardware offload\".",
+                color = Color.White.copy(alpha = 0.75f),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(10.dp))
+            Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth()) {
+                TextButton(onClick = onDismiss) { Text("Got it") }
+            }
+        }
+    }
+}
