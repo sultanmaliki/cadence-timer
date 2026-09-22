@@ -42,21 +42,31 @@ them here.
   files, and the home of the original negative-blend video look.
 - **Cleanup pass — done 2026-09-21** (`PLAN.md` N.5h): unused code, stale heap dump and intermediate
   test logs removed; nothing user-visible changed.
-- **Beat wave silently not reacting over Bluetooth — RESOLVED 2026-09-22 with an honest in-app hint.**
-  Owner report: at the gym, in companion mode over Bluetooth headphones, the wave stayed a flat idle
-  ripple. `AudioLevelSource` already distinguished this (`Status.SILENT`: the visualizer is running,
-  RECORD_AUDIO is granted, but capture keeps returning zeros) from "nothing playing", but the UI never
-  surfaced the difference — both looked identical. Likely cause, from web research (not confirmed
-  against Android's own docs, which don't document this): on many phones "Bluetooth A2DP hardware
-  offload" routes audio to the Bluetooth chip directly, bypassing the AudioFlinger effects chain that
-  `Visualizer` (session 0) reads from; a known workaround reported by other visualizer-app developers is
-  disabling that toggle in Developer options. Decision: don't try to detect Bluetooth output
-  programmatically (would need `AudioManager.getDevices()`, whose exact permission/behavior wasn't
-  confirmed, and it's only ever a proxy for the real signal anyway) — instead show a dismissible card
-  when `Status.SILENT` persists while companion audio is playing, explaining plainly that this is likely
-  a Bluetooth limitation and suggesting wired/speaker audio or disabling hardware offload
-  (`CompanionScreen.kt`'s `BeatSilentHintCard`). Not verified: whether disabling hardware offload
-  actually fixes capture on the owner's phone (needs a hand test at the gym).
+- **Beat wave silently not reacting — RESOLVED 2026-09-22 with an honest in-app hint; root cause
+  confirmed on-device, and it is not Bluetooth-specific.** Owner report: at the gym, in companion mode
+  over Bluetooth headphones, the wave stayed a flat idle ripple. `AudioLevelSource` already
+  distinguished this (`Status.SILENT`: the visualizer is running, RECORD_AUDIO is granted, but capture
+  keeps returning zeros) from "nothing playing", but the UI never surfaced the difference — both looked
+  identical. Reproduced immediately after on the connected test phone with **no Bluetooth involved**:
+  Mi Music playing over the phone's own speaker at full volume, `[viz] peak=0.0` continuously, despite
+  the same device having captured real data (`peak≈100`) in an earlier session (`test-logs/device-viz-
+  probe.log`) — so this is track/player-dependent, not a fixed device limitation. Root cause, confirmed
+  via a detailed technical writeup of the AOSP audio stack (`nift4.org`, cross-checked against a
+  Chromium bug on audio-offload power savings; Android's own reference docs don't document this):
+  compressed formats (MP3, FLAC, …) are commonly decoded on a low-power DSP via "hardware offload",
+  which runs on a `DirectOutputThread` instead of AudioFlinger's mixer — global-mix effects like
+  `Visualizer`(session 0) can only attach to a mixer thread, so an offloaded track is invisible to them
+  regardless of output device. Offload is a per-track decision made by the player/OS, not something a
+  Bluetooth connection uniquely causes (Bluetooth is only the most common trigger a listener notices,
+  because Bluetooth streaming engages it especially often). Decision: don't try to detect Bluetooth
+  output programmatically (would need `AudioManager.getDevices()`, whose exact permission/behavior
+  wasn't confirmed, and it would misdiagnose cases like this one anyway) — instead show a dismissible
+  card when `Status.SILENT` persists while companion audio is playing, stating plainly that this is a
+  hardware power-saving path some players use (over Bluetooth or the speaker) with no reliable in-app
+  fix, and that disabling "Bluetooth A2DP hardware offload" in Developer options is worth trying
+  specifically for the Bluetooth case (`CompanionScreen.kt`'s `BeatSilentHintCard`). There is no known
+  general fix for local-playback offload short of the source app itself offering a "disable offload" or
+  "software decode" setting.
 - **Name — DECIDED 2026-09-21: "SetBeat"** (repo `setbeat`), after two rejected candidates.
   *Cadence* (used briefly) collides with Cadence Design Systems' registered CADENCE mark (US Reg. No.
   3474136, Class 9, IC-design software). *RepBeat* (proposed by the owner) already exists as an App

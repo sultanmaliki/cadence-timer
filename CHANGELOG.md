@@ -7,10 +7,11 @@ under the earlier app names *Fitness Timer* (0.1 to 0.2) and *Cadence* (0.2.1 to
 ## 0.3.1 - explain a silent beat wave
 - **The beat wave now says why it isn't reacting, instead of just sitting flat.** In companion mode,
   if audio access is granted and music is playing but the wave stays idle, a dismissible card explains
-  this is usually a Bluetooth limitation (some phones route Bluetooth audio around the system effects
-  the wave reads) and suggests wired audio/speaker or disabling "Bluetooth A2DP hardware offload" in
-  Developer options. The wave itself can't be made to work over Bluetooth from the app's side; this
-  only makes the cause visible instead of looking broken.
+  that some music apps play compressed audio through a battery-saving hardware path (over Bluetooth or
+  the phone speaker) that skips the system effects the wave reads, with no reliable in-app fix — and
+  suggests disabling "Bluetooth A2DP hardware offload" in Developer options for the Bluetooth case.
+  This can't make the wave work in every case; it only makes the cause visible instead of looking
+  broken.
 
 ## 0.3.0 - two editions, private signing key
 - **Fixes "App blocked to protect your device" (Google Play Protect) on other phones.** Play Protect

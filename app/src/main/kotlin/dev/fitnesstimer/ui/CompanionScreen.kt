@@ -209,10 +209,14 @@ fun BeatAccessCard(onEnable: () -> Unit, onDismiss: () -> Unit, modifier: Modifi
  * Shown when audio access is granted and companion audio is playing, but the
  * visualizer keeps reporting silence (AudioLevelSource.Status.SILENT): the
  * wave falls back to a faint idle ripple, which reads as broken rather than
- * "no data available". Most commonly seen over Bluetooth, where some Android
- * versions/OEMs route audio through hardware that bypasses the effects chain
- * the wave depends on (PLAN.md N.5e, DECISIONS.md). Separate overlay (not
- * inside the gesture Box).
+ * "no data available". Root cause (confirmed on-device 2026-09-22, and by
+ * Android's own offload-audio design — DECISIONS.md): some music apps decode
+ * compressed audio (MP3, FLAC, …) on a low-power DSP path ("hardware
+ * offload") that bypasses AudioFlinger's mixer entirely, so the global-mix
+ * effect the wave reads (Visualizer, session 0) never receives any data.
+ * This happens over Bluetooth *and* straight out of the phone speaker,
+ * depending on the player and the phone — it is not Bluetooth-specific.
+ * Separate overlay (not inside the gesture Box).
  */
 @Composable
 fun BeatSilentHintCard(onDismiss: () -> Unit, modifier: Modifier = Modifier) {
@@ -226,10 +230,12 @@ fun BeatSilentHintCard(onDismiss: () -> Unit, modifier: Modifier = Modifier) {
             Text("Wave isn't reacting to the music", color = Color.White, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(6.dp))
             Text(
-                "Audio access is on, but Android isn't handing this app any sound to measure. This is " +
-                    "usually a Bluetooth limitation: some phones route Bluetooth audio around the system " +
-                    "effects the wave depends on. Try the phone speaker or wired audio, or in Settings ▸ " +
-                    "Developer options, disable \"Bluetooth A2DP hardware offload\".",
+                "Audio access is on, but Android isn't handing this app any sound to measure. Some music " +
+                    "apps play compressed audio through a battery-saving hardware path that skips the system " +
+                    "effects the wave reads — this can happen over Bluetooth or through the phone speaker, " +
+                    "depending on the player and the phone, and there's no reliable fix from inside this app. " +
+                    "If it's Bluetooth, disabling \"Bluetooth A2DP hardware offload\" in Developer options is " +
+                    "worth trying.",
                 color = Color.White.copy(alpha = 0.75f),
                 style = MaterialTheme.typography.bodySmall,
             )
