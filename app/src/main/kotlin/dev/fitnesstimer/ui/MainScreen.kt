@@ -48,6 +48,7 @@ import dev.fitnesstimer.media.connectMediaController
 import dev.fitnesstimer.media.tryPersistReadGrant
 import dev.fitnesstimer.nowplaying.AudioLevelSource
 import dev.fitnesstimer.nowplaying.NowPlayingRepository
+import dev.fitnesstimer.nowplaying.isBluetoothAudioOutputActive
 import dev.fitnesstimer.nowplaying.POSITION_UNKNOWN
 import dev.fitnesstimer.nowplaying.positionNow
 import dev.fitnesstimer.render.AudioVisual
@@ -472,7 +473,9 @@ fun MainScreen(debugUris: List<Uri> = emptyList()) {
     if (companionMode && recordGranted && companionPlaying &&
         vizStatus == AudioLevelSource.Status.SILENT && !silentHintDismissed
     ) {
+        val bluetoothActive = remember(vizStatus) { isBluetoothAudioOutputActive(context) }
         BeatSilentHintCard(
+            bluetoothActive = bluetoothActive,
             onDismiss = {
                 silentHintDismissed = true
                 prefs.edit().putBoolean("beat_silent_hint_dismissed", true).apply()

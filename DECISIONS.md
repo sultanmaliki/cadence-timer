@@ -67,6 +67,20 @@ them here.
   specifically for the Bluetooth case (`CompanionScreen.kt`'s `BeatSilentHintCard`). There is no known
   general fix for local-playback offload short of the source app itself offering a "disable offload" or
   "software decode" setting.
+- **Silent-wave card wrongly implied Bluetooth when it wasn't — RESOLVED 2026-09-22, supersedes the
+  "don't try to detect Bluetooth" call above.** Owner report: saw the card mention Bluetooth while not
+  using Bluetooth audio, which reads as the app misdiagnosing its own state. The earlier decision
+  against `AudioManager.getDevices()` was because its permission requirement wasn't confirmed — now
+  checked directly against the AOSP source (`frameworks/base/media/java/android/media/AudioManager.java`):
+  `getDevices(int)` carries no `@RequiresPermission` annotation, and has existed since API 23 (below
+  this app's minSdk 29), so it needs no manifest change. Added
+  `isBluetoothAudioOutputActive()` (`AudioLevelSource.kt`), checking `GET_DEVICES_OUTPUTS` for
+  `TYPE_BLUETOOTH_A2DP`/`TYPE_BLE_HEADSET`/`TYPE_BLE_SPEAKER`/`TYPE_BLE_BROADCAST`. `BeatSilentHintCard`
+  now picks accurate wording: the Bluetooth-offload tip only when Bluetooth is actually connected,
+  otherwise a message that explicitly rules Bluetooth out and names the player's own decode path
+  instead. Caveat: `getDevices()` reports currently-connected devices, which is a fine proxy for the
+  active route in the common case (only one output connected) but could be wrong if a phone has
+  multiple simultaneous outputs and routes elsewhere — not verified against such a setup.
 - **Name — DECIDED 2026-09-21: "SetBeat"** (repo `setbeat`), after two rejected candidates.
   *Cadence* (used briefly) collides with Cadence Design Systems' registered CADENCE mark (US Reg. No.
   3474136, Class 9, IC-design software). *RepBeat* (proposed by the owner) already exists as an App

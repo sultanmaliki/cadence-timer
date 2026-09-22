@@ -4,6 +4,14 @@ All notable changes to SetBeat, newest first. Each release has fuller notes (and
 [Releases](https://github.com/sultanmaliki/setbeat/releases) page. Versions before 0.2.3 were published
 under the earlier app names *Fitness Timer* (0.1 to 0.2) and *Cadence* (0.2.1 to 0.2.2).
 
+## 0.3.2 - don't blame Bluetooth when it isn't Bluetooth
+- **The silent-wave card now checks whether Bluetooth is actually connected before mentioning it.**
+  Owner report: the card suggested a Bluetooth fix while playing through the phone's own speaker,
+  which is confusing when you can see you're not on Bluetooth. It now checks the real output route
+  (`AudioManager.getDevices()`, no extra permission) and only offers the Bluetooth-specific tip when
+  Bluetooth is actually connected; otherwise it says plainly that this isn't a Bluetooth issue and the
+  cause is the music app's own hardware decode path, with no in-app fix.
+
 ## 0.3.1 - explain a silent beat wave
 - **The beat wave now says why it isn't reacting, instead of just sitting flat.** In companion mode,
   if audio access is granted and music is playing but the wave stays idle, a dismissible card explains
